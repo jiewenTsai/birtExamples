@@ -44,8 +44,8 @@ Jie-Wen Tsai
 ``` r
 install.packages(c("RTMB", "lavaan", "statmod", "coda", "loo"))
 install.packages("birt_0.1.0.tar.gz", repos = NULL, type = "source")
-# 選配：JAGS 引擎（另外要先裝 JAGS 4.3 以上）與 DIF 樹
-install.packages(c("R2jags", "partykit"))
+# 選配：JAGS 引擎（另外要先裝 JAGS 4.3 以上）
+install.packages("R2jags")
 ```
 
 逐行說明：
@@ -53,7 +53,7 @@ install.packages(c("R2jags", "partykit"))
 1.  安裝 birt 的相依套件。RTMB 是 ELGM 與最大概似的計算核心，是 birt 的一部分，一定要裝。
 2.  從原始碼檔安裝 birt。
 3.  註解：下一行是選配。
-4.  R2jags 只在 `engine = "jags"` 時需要；它還需要先從 <https://mcmc-jags.sourceforge.io/> 安裝 JAGS 程式本身。partykit 只有 `dif_tree()` 需要。
+4.  R2jags 只在 `engine = "jags"` 時需要；它還需要先從 <https://mcmc-jags.sourceforge.io/> 安裝 JAGS 程式本身。
 
 輸出怎麼讀：
 
@@ -162,7 +162,7 @@ fit
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 25 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
       Reliability: ability 0.760, speed 0.861
@@ -195,7 +195,7 @@ summary(fit)
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 25 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -657,7 +657,7 @@ print(s, tables = "fit")
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 25 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -898,7 +898,7 @@ convergence(fit)
 | `compare()` | Bayes factor | AIC、BIC | LOOIC、ELPD |
 | `equations()`、`algorithm()` | ✓ | ✓ | ✓ |
 | `quantiles()`、`quantile_test()`、`cond_reliability()`、`rt_information()` | ✓ | ✓ | — |
-| `score_test()`、`quantile_score()`、`dif_tree()` | — | ✓ | — |
+| `score_test()`、`quantile_score()`、`ipcr()` | — | ✓ | — |
 | `rtmb_code()` | ✓ | ✓ | — |
 | `jags_code()`、`posterior_draws()`、`ppc()`、`pointwise_loglik()` | — | — | ✓ |
 
@@ -1045,7 +1045,7 @@ r_s
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 36 s
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 37 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on eps2, ldl2, Gaussian in 44 directions (81 nodes)
       log marginal likelihood -6872.74; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863
@@ -1697,7 +1697,7 @@ rbind(complete = pick(fit), censored = pick(fcen), naive = pick(fnai))
 
 - `score_test()`：參數不變性（DIF）的分數檢定。
 - `quantile_score()`：分位數效果的影響函數與穩健標準誤。
-- `dif_tree()`：DIF 樹。
+- `ipcr()`：哪些參數隨共變項改變（個人參數貢獻迴歸）。
 
 用在 ELGM 配適上會直接報錯：
 
@@ -1714,7 +1714,7 @@ score_test(fit, d$x1 > 0)
 輸出怎麼讀：
 
 - 錯誤訊息的前半：`score_test()` 是最大概似的工具，要用最大概似估計值上每個人的 score；這是 ELGM 配適，所以不接受。
-- 解法：用同一個語法，加上 `control = rtmb_control(method = "aghq")` 重新配適（4.2 節的 `ml_cor` 就是）。`quantile_score()`、`dif_tree()` 也一樣。
+- 解法：用同一個語法，加上 `control = rtmb_control(method = "aghq")` 重新配適（4.2 節的 `ml_cor` 就是）。`quantile_score()`、`ipcr()` 也一樣。
 - 為什麼不直接在後驗眾數上算：後驗眾數上每個人的 score 加總不是 0，而是負的 log 先驗梯度；ELGM 報告的又是後驗平均數，不是眾數。在眾數上做 score 檢定要先把 score 置中，而且型一錯誤率會隨共變異數的估法改變（Debelak, Pawel, Strobl & Merkle, 2022）。
 - 錯誤訊息的後半是貝氏的做法：配適有、沒有這個效果的兩個 ELGM 模型（例如 `E(y1) ~ z`），用 `compare()` 比較邊際概似，得到 Bayes factor（4.1 節）。Bayes factor 會受效果先驗的影響。
 
@@ -1866,14 +1866,14 @@ score_test(qs, d$x1 > 0)
 - `none decorrelation`：每次只檢定一個效果，不必去相關。
 - `p.holm` 都是 1：沒有任何效果在兩組間不同。這是正確的：x1 和交叉關係無關。
 
-### 7.3 DIF 樹：`dif_tree()`
+### 7.3 哪些參數隨共變項改變：`ipcr()`
 
-`dif_tree()` 沿多個分組變項遞迴切分受試者，找出題目參數不一致的子群體（model-based recursive partitioning；Zeileis, Hothorn & Hornik, 2008；IRT 版本見 Strobl, Kopf & Zeileis, 2015）。
+`ipcr()` 是個人參數貢獻迴歸（individual parameter contribution regression；Arnold, Oberski, Brandmaier & Voelkle, 2020）。
 
-- 每個節點用最大概似配適，再用分數檢定沿每個分組變項檢定測量參數。
-- 最顯著的變項（Bonferroni 校正後）若低於 `alpha` 就切開。
-- 預設 `impact = TRUE`：分組變項同時是潛在迴歸的共變項，所以樹找的是扣除平均數差異之後的 DIF。
-- 需要 partykit 套件。
+- 每個人對每個估計值都有一個「貢獻」：IPC = 估計值 + bread × 這個人的 score。所有人的 IPC 平均起來，就是估計值。
+- 把每個參數的 IPC 對共變項做迴歸。斜率不是 0，表示這個參數隨那個共變項改變：題目參數改變就是 DIF，結構參數改變就是共變項的效果。
+- 好處：一次檢查所有參數、同時放多個共變項（每個斜率都已控制其他共變項），而且只要配適一次。
+- IPC 是在合併估計值附近的一步線性近似，斜率會往 0 縮。所以 `ipcr()` 用來篩選；效果大小要再配適加上調節的模型（例如 `E(y3) ~ x2`）。
 
 下面在 y3 製造一個 DIF：x2 \> 0 的人，y3 有額外 30% 的機會答對。
 
@@ -1883,50 +1883,15 @@ set.seed(5)
 g <- d2$x2 > 0
 d2$y3[g] <- pmax(d2$y3[g], rbinom(sum(g), 1, 0.3))
 m2pl <- paste("ability =~", paste(items, collapse = " + "))
-z <- data.frame(x1_high = factor(d2$x1 > 0, labels = c("no", "yes")),
-                x2_high = factor(d2$x2 > 0, labels = c("no", "yes")))
-tr <- dif_tree(m2pl, d2, partition = z)
-tr
+ml2 <- birt(m2pl, d2, control = rtmb_control(method = "aghq"))
+ipc <- ipcr(ml2, d2[c("x1", "x2")])
+dplyr::filter(ipc$coefficients, p_holm < 0.05)
 ```
 
-    Model-based recursive partitioning (fit_node)
-
-    Model formula:
-    .y ~ x1_high + x2_high | x1_high + x2_high
-
-    Fitted party:
-    [1] root
-    |   [2] x2_high in no: n = 257
-    |                y1 ~1          y2 ~1          y3 ~1          y4 ~1          y5 ~1 
-    |           0.67180397     0.13494156    -1.06858420    -1.87970455     0.01811722 
-    |                y6 ~1          y7 ~1          y8 ~1          y9 ~1         y10 ~1 
-    |          -0.08856058    -1.07715234     0.47323932    -0.22097303     0.94851453 
-    |        ability =~ y1  ability =~ y2  ability =~ y3  ability =~ y4  ability =~ y5 
-    |           0.12652473     0.23552898    -0.32980385    -0.18094846     0.68326738 
-    |        ability =~ y6  ability =~ y7  ability =~ y8  ability =~ y9 ability =~ y10 
-    |           0.19468271     0.84595693     0.75352651     0.33117390     0.30670281 
-    |   [3] x2_high in yes: n = 243
-    |                y1 ~1          y2 ~1          y3 ~1          y4 ~1          y5 ~1 
-    |           0.72230208     0.01460447    -0.06243105    -1.99075550    -0.37937442 
-    |                y6 ~1          y7 ~1          y8 ~1          y9 ~1         y10 ~1 
-    |          -0.45367512    -1.23652282     0.04215778    -0.59684409     0.68108936 
-    |        ability =~ y1  ability =~ y2  ability =~ y3  ability =~ y4  ability =~ y5 
-    |          -0.13111065     0.23271249    -0.44176909    -0.14700808     0.52910007 
-    |        ability =~ y6  ability =~ y7  ability =~ y8  ability =~ y9 ability =~ y10 
-    |           0.02003456     0.71143683     0.45409426     0.21802253     0.08110497 
-
-    Number of inner nodes:    1
-    Number of terminal nodes: 2
-    Number of parameters per node: 20
-    Objective function: 2907.671
-
-``` r
-strucchange::sctest(tr, node = 1)
-```
-
-                 x1_high     x2_high
-    statistic 18.8595083 38.60354376
-    p.value    0.7800149  0.01487607
+    # A tibble: 1 × 7
+      parameter term    est     se statistic         p   p_holm
+      <chr>     <chr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
+    1 y3 ~1     x2    0.404 0.0920      4.39 0.0000141 0.000565
 
 逐行說明：
 
@@ -1934,22 +1899,44 @@ strucchange::sctest(tr, node = 1)
 2.  固定亂數種子。
 3.  `g`：x2 \> 0 的人。
 4.  這些人的 y3 若原本答錯，有 30% 機率改成答對：y3 在這一組比較容易，也就是 DIF。
-5.  只用作答題的 2PL 模型（樹在每個節點都要重新配適，單因素模型比較快）。
-6.  分組變項：x1 是否大於 0（和題目無關）。
-7.  x2 是否大於 0（y3 的 DIF 來源）。
-8.  長樹。
-9.  印出樹。
-10. 列出根節點（node 1）對每個分組變項的檢定。
+5.  只用作答題的 2PL 模型。
+6.  最大概似配適（`ipcr()` 和 `score_test()` 一樣，只接受最大概似配適）。
+7.  每個參數的 IPC 對 x1、x2 做迴歸。
+8.  只看 Holm 校正後 p \< .05 的斜率。`print(ipc)` 會列出全部斜率。
 
 輸出怎麼讀：
 
-- `Fitted party`：樹在根節點依 `x2_high` 切成兩群：`[2] x2_high in no`（257 人）與 `[3] x2_high in yes`（243 人）。x1_high 沒有被選上。
-- 每個終端節點下列出該組的測量參數。`y3 ~1` 是 y3 的截距：no 組 −1.07，yes 組 −0.06，yes 組明顯比較容易，這就是我們製造的 DIF。負荷量列在內部尺度（log），比較節點時請用檢定，不要直接比參數。
-- `sctest()`：根節點上 x1_high 的 p = .78，x2_high 的 p = .015（已做 Bonferroni 校正）。
-- **速度與連續變項：** 找切點時，每個候選切點都要把兩邊各配適一次。分組變項是因子時只有少數切點，這棵樹約 6 秒。
-  - 連續的分組變項預設先切成 `nbins = 10` 個分位數組（有序因子），切點只在組界上找（最多 9 個），並用有序變項的 maxLM 檢定（Merkle, Fan & Zeileis, 2014）。
-  - 代價是切點只能定位到所在的分位數組；樹上印出的是組的區間，例如 `x <= (5.14,6.01]`。
-  - `nbins = NULL` 保留原本的連續變項，在每個觀察值上找切點：結果最細，但 N = 600 的 2PL 要好幾分鐘。
+- 20 個參數 × 2 個共變項，共 40 個斜率，只有一個顯著：`y3 ~1` 對 `x2`，斜率 0.40（SE 0.09），Holm 校正後 p \< .001。這就是我們製造的 DIF。
+- `y3 ~1` 是 y3 在 logit 上的截距：斜率是正的，表示 x2 越大，y3 越容易答對。
+- x1 沒有被選上：x1 和 DIF 無關。
+- 參數在內部尺度：負荷量是 log 負荷量（標成 `log(ability =~ y1)`），標準差是 log SD，相關是 atanh。
+- 標準誤預設是 HC3（異質變異穩健）：IPC 的殘差變異數本來就因人而異。`se = "model"` 是一般 OLS 標準誤，和 ipcr 套件相同。
+
+找到之後，配適加上這個調節的模型，估計效果大小：
+
+``` r
+ml_dif <- birt(paste(m2pl, "E(y3) ~ x2", sep = "\n"), d2, control = rtmb_control(method = "aghq"))
+e <- estimates(ml_dif)
+e[e$lhs == "E(y3)", ]
+```
+
+    # A tibble: 1 × 9
+      lhs   op    rhs      est    se     z    pvalue ci.lower ci.upper
+      <chr> <chr> <chr>  <dbl> <dbl> <dbl>     <dbl>    <dbl>    <dbl>
+    1 E(y3) ~     x2    -0.708 0.178 -3.99 0.0000665    -1.06   -0.360
+
+逐行說明：
+
+1.  在 2PL 上加一行 `E(y3) ~ x2`，最大概似配適。
+2.  取出參數表。
+3.  只看調節效果那一列。
+
+輸出怎麼讀：
+
+- 調節效果 −0.71（SE 0.18）。調節作用在潛在尺度上：logit = d + λ(θ − δ)，δ = β·x2。負的 β 表示 x2 越大，y3 越容易，和 `ipcr()` 的方向相同。
+- 換到 logit 上：−λβ = 0.674 × 0.708 ≈ 0.48，比 `ipcr()` 的 0.40 大。這就是一步近似往 0 縮的結果，所以效果大小以調節模型為準。
+
+`dif_tree()`（partykit 的 DIF 樹）已不建議使用：還能用，但每個 session 會警告一次，之後的版本會移除。
 
 ### 7.4 輸出 RTMB 程式：`rtmb_code()`
 
@@ -2902,6 +2889,7 @@ TIMSS（631 人 × 28 個指標）：JAGS 每個模型約 90–110 秒；RTMB �
 
 ## 參考文獻
 
+- Arnold, M., Oberski, D. L., Brandmaier, A. M., & Voelkle, M. C. (2020). Identifying heterogeneity in dynamic panel models with individual parameter contribution regression. *Structural Equation Modeling, 27*, 613–628. https://doi.org/10.1080/10705511.2019.1667240
 - Barbieri, M. M., & Berger, J. O. (2004). Optimal predictive model selection. *Annals of Statistics, 32*, 870–897.
 - Bauer, D. J. (2017). A more general model for testing measurement invariance and differential item functioning. *Psychological Methods, 22*, 507–526.
 - Bolsinova, M., & Tijmstra, J. (2016). Posterior predictive checks for conditional independence between response time and accuracy. *Journal of Educational and Behavioral Statistics, 41*, 123–145.
@@ -2918,7 +2906,6 @@ TIMSS（631 人 × 28 個指標）：JAGS 每個模型約 90–110 秒；RTMB �
 - Kozumi, H., & Kobayashi, G. (2011). Gibbs sampling methods for Bayesian quantile regression. *Journal of Statistical Computation and Simulation, 81*, 1565–1578.
 - Lee, Y.-H., & Ying, Z. (2015). A mixture cure-rate model for responses and response times in time-limit tests. *Psychometrika, 80*, 748–775.
 - Meeker, W. Q., & Escobar, L. A. (1998). *Statistical methods for reliability data*. Wiley.
-- Merkle, E. C., Fan, J., & Zeileis, A. (2014). Testing for measurement invariance with respect to an ordinal variable. *Psychometrika, 79*, 569–584.
 - Merkle, E. C., Furr, D., & Rabe-Hesketh, S. (2019). Bayesian comparison of latent variable models: Conditional versus marginal likelihoods. *Psychometrika, 84*, 802–829.
 - Merkle, E. C., & Zeileis, A. (2013). Tests of measurement invariance without subgroups: A generalization of classical methods. *Psychometrika, 78*, 59–82.
 - Montiel Olea, J. L., & Plagborg-Møller, M. (2019). Simultaneous confidence bands: Theory, implementation, and an application to SVARs. *Journal of Applied Econometrics, 34*, 1–17.
@@ -2926,12 +2913,10 @@ TIMSS（631 人 × 28 個指標）：JAGS 每個模型約 90–110 秒；RTMB �
 - Muthén, B., & Asparouhov, T. (2012). Bayesian structural equation modeling: A more flexible representation of substantive theory. *Psychological Methods, 17*, 313–335.
 - Nicewander, W. A. (2018). Conditional reliability coefficients for test scores. *Psychological Methods, 23*, 351–362.
 - Stringer, A., Brown, P., & Stafford, J. (2023). Fast, scalable approximations to posterior distributions in extended latent Gaussian models. *Journal of Computational and Graphical Statistics, 32*, 84–98. https://doi.org/10.1080/10618600.2022.2099403
-- Strobl, C., Kopf, J., & Zeileis, A. (2015). Rasch trees: A new method for detecting differential item functioning in the Rasch model. *Psychometrika, 80*, 289–316.
 - van der Linden, W. J. (2007). A hierarchical framework for modeling speed and accuracy on test items. *Psychometrika, 72*, 287–308.
 - White, H. (1982). Maximum likelihood estimation of misspecified models. *Econometrica, 50*, 1–25.
 - Wang, Y., Feng, X.-N., & Song, X.-Y. (2016). Bayesian quantile structural equation models. *Structural Equation Modeling, 23*, 246–258.
 - Wise, S. L., & Kong, X. (2005). Response time effort: A new measure of examinee motivation in computer-based tests. *Applied Measurement in Education, 18*, 163–183.
 - Yang, Y., Wang, H. J., & He, X. (2016). Posterior inference in Bayesian quantile regression with asymmetric Laplace likelihood. *International Statistical Review, 84*, 327–344.
 - Yu, K., & Zhang, J. (2005). A three-parameter asymmetric Laplace distribution and its extension. *Communications in Statistics—Theory and Methods, 34*, 1867–1879.
-- Zeileis, A., Hothorn, T., & Hornik, K. (2008). Model-based recursive partitioning. *Journal of Computational and Graphical Statistics, 17*, 492–514.
 - Zheng, G., & Gastwirth, J. L. (2000). Where is the Fisher information in an ordered sample? *Statistica Sinica, 10*, 1267–1280.

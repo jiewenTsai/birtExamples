@@ -3,7 +3,7 @@
 2026-10-28 的重構之後，birt 與 birtRcpp 的寫法有哪些地方不一樣。舊寫法大多還能用，只是會出現「已不建議使用」的警告；改成新寫法就不會再看到警告。
 
 - birtRcpp：**改最多**。現成模型改成「給資料、用 `model =` 選模型」，很少改的設定收進 `ecm_control()`、`gibbs_control()`。
-- birt：**語法不變**。只有回傳的表格改成 tibble，以及錯誤訊息的呼叫回到原本的函數名稱。
+- birt：**語法不變**。回傳的表格改成 tibble；新增 `ipcr()`，取代已不建議使用的 `dif_tree()`；錯誤訊息的呼叫回到原本的函數名稱。
 
 ## 1. birtRcpp：選模型與估計
 
@@ -96,6 +96,18 @@
 - tibble 沒有 row names。子集之後列號從 1 重新編，不再是原本的列號。
 - 要舊的樣子：`as.data.frame(estimates(fit))`。
 
-## 6. birt：錯誤訊息
+## 6. birt：`dif_tree()` 改用 `ipcr()`
+
+| 舊寫法 | 新寫法 |
+|---|---|
+| `dif_tree(model, data, partition = z)`（需要 partykit） | `ml <- birt(model, data, control = rtmb_control(method = "aghq"))`，再 `ipcr(ml, z)` |
+
+- `dif_tree()` 已不建議使用：還能用，每個 session 警告一次（`options(birt.deprecation = "always")` 每次都警告），之後的版本會移除。
+- `ipcr()`（個人參數貢獻迴歸；Arnold 等人，2020）把每個人對每個估計值的貢獻，對所有共變項一起做迴歸：一次檢查所有參數、可以同時放連續與類別共變項，只要配適一次。
+- 和 `score_test()` 一樣只接受最大概似配適。參數在內部尺度（log 負荷量、log SD、atanh 相關）。
+- 斜率會往 0 縮（一步近似），所以用來篩選；效果大小請配適加上調節的模型（例如 `E(y3) ~ x2`）。
+- 回傳的 `coefficients` 是 tibble；只看顯著的斜率：`dplyr::filter(ipcr(ml, z)$coefficients, p_holm < 0.05)`。
+
+## 7. birt：錯誤訊息
 
 birt 的語法、`birt()` 的引數都沒有改。重構時把檢查拆成小函數，錯誤訊息一度顯示小函數的名稱（例如 `Error in check_path_alias(ld, factors)`）；已改回原本的函數（`Error in parse_model(model)`），和重構前逐字相同。

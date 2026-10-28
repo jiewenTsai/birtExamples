@@ -1,5 +1,5 @@
 # Example 8. The RTMB engine: ELGM and maximum likelihood on the same marginal likelihood,
-# and the maximum likelihood tools (score tests, influence functions, DIF trees, RTMB code)
+# and the maximum likelihood tools (score tests, influence functions, IPC regression, RTMB code)
 library(birt)
 options(pillar.sigfig = 7) # fit_indices() prints logLik, AIC and BIC to two decimals
 d <- sim_rtirt(N = 500, K = 10)
@@ -27,18 +27,10 @@ qs <- quantile_score(f5, p = c(0.1, 0.9))
 qs # est, model-based se, sandwich se.robust
 score_test(qs, d$x2) # does an effect change along x2?
 
-# DIF tree (needs partykit): y3 made easier for x2 > 0
-if (requireNamespace("partykit", quietly = TRUE)) {
-  d2 <- d
-  set.seed(5)
-  g <- d2$x2 > 0
-  d2$y3[g] <- pmax(d2$y3[g], rbinom(sum(g), 1, 0.3))
-  z <- data.frame(x1_high = factor(d2$x1 > 0), x2_high = factor(d2$x2 > 0))
-  tr <- dif_tree(paste("ability =~", paste(y, collapse = " + ")), d2, z)
-  print(tr)
-  # numeric partitioning variables work too, but the split search refits the model at every
-  # candidate cut point and takes minutes
-}
+# individual parameter contribution regression: which parameters change with x1 and x2?
+# (sim_rtirt() lets speed depend on x1, which this model leaves out: the time intercepts move)
+ipc <- ipcr(fm, d[c("x1", "x2")])
+dplyr::filter(ipc$coefficients, p_holm < 0.05) # print(ipc) shows every slope
 
 # a stand-alone RTMB script of the fitted model
 invisible(capture.output(code <- rtmb_code(fm)))
