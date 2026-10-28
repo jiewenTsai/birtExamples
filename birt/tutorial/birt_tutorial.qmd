@@ -423,7 +423,7 @@ birt(paste(m_cross, "speed ~ ability", sep = "\n"), d)
 
 ### 3.1 摘要表物件
 
-`summary(fit)` 回傳一個 S3 物件（`birt_summary`）。每張表都是 data.frame，印出時標上名字，所以看到 `$items` 就知道用 `s$items` 取出。
+`summary(fit)` 回傳一個 S3 物件（`birt_summary`）。每張表都是 tibble（tidyverse 的資料框），印出時標上名字，所以看到 `$items` 就知道用 `s$items` 取出。
 
 ```{r summary-object}
 s <- summary(fit)
@@ -733,7 +733,7 @@ compare(normal = fr, shash = r_s)
 輸出怎麼讀：
 
 - `skew` 的後驗平均數 0.105，95% 區間 [−0.289, 0.630] 包含 0：沒有偏態的證據。
-- `tail` 的後驗平均數 1.546，區間 [0.916, 2.832] 包含 1（常態）。
+- `tail` 的後驗平均數約 1.55，區間約 [0.92, 2.83]，包含 1（常態）。
 - `compare()`：常態模型的 logML 是 −6870.50，SHASH 是 −6872.71。資料對常態模型的 BF 是 9.09（`BF_best`）。
 - 模擬資料的 speed 本來就是常態的，所以 SHASH 多出的兩個參數換不到更好的邊際概似，這是預期的結果。
 

@@ -1,6 +1,7 @@
 # Example 8. The RTMB engine: ELGM and maximum likelihood on the same marginal likelihood,
 # and the maximum likelihood tools (score tests, influence functions, DIF trees, RTMB code)
 library(birt)
+options(pillar.sigfig = 7) # fit_indices() prints logLik, AIC and BIC to two decimals
 d <- sim_rtirt(N = 500, K = 10)
 y <- paste0("y", 1:10)
 t <- paste0("t", 1:10)

@@ -162,7 +162,7 @@ fit
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 25 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
       Reliability: ability 0.760, speed 0.861
@@ -195,7 +195,7 @@ summary(fit)
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 25 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -346,10 +346,12 @@ summary(fit)
 head(scores(fit), 3)
 ```
 
-      id    ability ability_psd     speed speed_psd
-    1  1  0.8958965   0.4728554 0.4738054 0.1372432
-    2  2  1.8232723   0.6000988 0.2090593 0.1375854
-    3  3 -0.4233628   0.4620413 0.1692650 0.1371558
+    # A tibble: 3 × 5
+         id ability ability_psd speed speed_psd
+      <int>   <dbl>       <dbl> <dbl>     <dbl>
+    1     1   0.896       0.473 0.474     0.137
+    2     2   1.82        0.600 0.209     0.138
+    3     3  -0.423       0.462 0.169     0.137
 
 ``` r
 reliability(fit)
@@ -552,11 +554,11 @@ data.frame(ec[sel, c("lhs", "op", "rhs")],
            prior_bsem = eb$prior[sel])
 ```
 
-           lhs op rhs default   bsem    prior_bsem
-    11   speed =~  t1  -1.000 -1.000              
-    12   speed =~  t2  -1.000 -1.000              
-    21 ability =~  t1  -0.019  0.011 dnorm(0, 100)
-    22 ability =~  t2  -0.284 -0.239 dnorm(0, 100)
+          lhs op rhs default   bsem    prior_bsem
+    1   speed =~  t1  -1.000 -1.000              
+    2   speed =~  t2  -1.000 -1.000              
+    3 ability =~  t1  -0.019  0.011 dnorm(0, 100)
+    4 ability =~  t2  -0.284 -0.239 dnorm(0, 100)
 
 逐行說明：
 
@@ -628,7 +630,7 @@ birt(paste(m_cross, "speed ~ ability", sep = "\n"), d)
 
 ### 3.1 摘要表物件
 
-`summary(fit)` 回傳一個 S3 物件（`birt_summary`）。每張表都是 data.frame，印出時標上名字，所以看到 `$items` 就知道用 `s$items` 取出。
+`summary(fit)` 回傳一個 S3 物件（`birt_summary`）。每張表都是 tibble（tidyverse 的資料框），印出時標上名字，所以看到 `$items` 就知道用 `s$items` 取出。
 
 ``` r
 s <- summary(fit)
@@ -655,7 +657,7 @@ print(s, tables = "fit")
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 25 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -707,8 +709,10 @@ names(e)
 e[e$op == "~~" & e$lhs != e$rhs, ]
 ```
 
-           lhs op   rhs        prior       est         sd      q025     q975
-    21 ability ~~ speed dunif(-1, 1) 0.4236297 0.04849135 0.3255933 0.515475
+    # A tibble: 1 × 8
+      lhs     op    rhs   prior          est     sd  q025  q975
+      <chr>   <chr> <chr> <chr>        <dbl>  <dbl> <dbl> <dbl>
+    1 ability ~~    speed dunif(-1, 1) 0.424 0.0485 0.326 0.515
 
 逐行說明：
 
@@ -984,10 +988,12 @@ e <- estimates(fr)
 e[e$op == "~", ]
 ```
 
-         lhs op     rhs       prior         est         sd        q025       q975
-    21 speed  ~ ability dnorm(0, 1) 0.156392622 0.01928591  0.11885361 0.19445301
-    22 speed  ~      x1 dnorm(0, 1) 0.109207719 0.01582875  0.07818393 0.14023150
-    23 speed  ~      x2 dnorm(0, 1) 0.009002823 0.01519686 -0.02078255 0.03878806
+    # A tibble: 3 × 8
+      lhs   op    rhs     prior           est     sd    q025   q975
+      <chr> <chr> <chr>   <chr>         <dbl>  <dbl>   <dbl>  <dbl>
+    1 speed ~     ability dnorm(0, 1) 0.156   0.0193  0.119  0.194 
+    2 speed ~     x1      dnorm(0, 1) 0.109   0.0158  0.0782 0.140 
+    3 speed ~     x2      dnorm(0, 1) 0.00900 0.0152 -0.0208 0.0388
 
 逐行說明：
 
@@ -1094,10 +1100,12 @@ e <- estimates(r_s)
 e[e$lhs == "speed" & e$op %in% c("sd", "skew", "tail"), ]
 ```
 
-         lhs   op rhs             prior       est         sd       q025      q975
-    25 speed   sd     dt(0, 1, 3) T(0,) 0.3525204 0.02589243  0.2992570 0.4009343
-    26 speed skew           dnorm(0, 1) 0.1048821 0.23443243 -0.2889200 0.6300383
-    27 speed tail          dlnorm(0, 4) 1.5462275 0.50042495  0.9156419 2.8317612
+    # A tibble: 3 × 8
+      lhs   op    rhs   prior               est     sd   q025  q975
+      <chr> <chr> <chr> <chr>             <dbl>  <dbl>  <dbl> <dbl>
+    1 speed sd    ""    dt(0, 1, 3) T(0,) 0.353 0.0259  0.299 0.401
+    2 speed skew  ""    dnorm(0, 1)       0.105 0.234  -0.289 0.630
+    3 speed tail  ""    dlnorm(0, 4)      1.55  0.500   0.916 2.83 
 
 ``` r
 compare(normal = fr, shash = r_s)
@@ -1117,7 +1125,7 @@ compare(normal = fr, shash = r_s)
 輸出怎麼讀：
 
 - `skew` 的後驗平均數 0.105，95% 區間 \[−0.289, 0.630\] 包含 0：沒有偏態的證據。
-- `tail` 的後驗平均數 1.546，區間 \[0.916, 2.832\] 包含 1（常態）。
+- `tail` 的後驗平均數約 1.55，區間約 \[0.92, 2.83\]，包含 1（常態）。
 - `compare()`：常態模型的 logML 是 −6870.50，SHASH 是 −6872.71。資料對常態模型的 BF 是 9.09（`BF_best`）。
 - 模擬資料的 speed 本來就是常態的，所以 SHASH 多出的兩個參數換不到更好的邊際概似，這是預期的結果。
 
@@ -2022,7 +2030,7 @@ summary(mn)
       Distributions: SA: normal (log sd ~ logT); 8 ordinal: grm (categories 3/4)
       Covariates: logT
       Moderators: logT (shift logT: free 2; loading logT: equal 8)
-      Approximate Bayes (ELGM; W = person latents): 36 parameters; 5 s
+      Approximate Bayes (ELGM; W = person latents): 36 parameters; 4 s
         inner: AGHQ (k = 21) per person; outer: AGHQ, k = 11 on alpha1, Gaussian in 35 directions (11 nodes)
       log marginal likelihood -5171.77; -2logL at the posterior mode 10133.0
 
@@ -2509,17 +2517,19 @@ e <- estimates(fx)
 e[!is.na(e$p_incl), c("lhs", "op", "rhs", "est", "p_incl", "BF10")]
 ```
 
-           lhs op rhs           est     p_incl       BF10
-    21 ability =~  t1 -0.0013704212 0.07800000 0.08459870
-    22 ability =~  t2 -0.2776761743 1.00000000        Inf
-    23 ability =~  t3  0.0006949536 0.07400000 0.07991361
-    24 ability =~  t4 -0.2928139637 1.00000000        Inf
-    25 ability =~  t5 -0.0011689961 0.08666667 0.09489051
-    26 ability =~  t6 -0.2691327298 1.00000000        Inf
-    27 ability =~  t7  0.0001563747 0.06433333 0.06875668
-    28 ability =~  t8 -0.2855777021 1.00000000        Inf
-    29 ability =~  t9  0.0058599725 0.16633333 0.19952019
-    30 ability =~ t10 -0.3011721289 1.00000000        Inf
+    # A tibble: 10 × 6
+       lhs     op    rhs         est p_incl     BF10
+       <chr>   <chr> <chr>     <dbl>  <dbl>    <dbl>
+     1 ability =~    t1    -0.00137  0.0780   0.0846
+     2 ability =~    t2    -0.278    1      Inf     
+     3 ability =~    t3     0.000695 0.0740   0.0799
+     4 ability =~    t4    -0.293    1      Inf     
+     5 ability =~    t5    -0.00117  0.0867   0.0949
+     6 ability =~    t6    -0.269    1      Inf     
+     7 ability =~    t7     0.000156 0.0643   0.0688
+     8 ability =~    t8    -0.286    1      Inf     
+     9 ability =~    t9     0.00586  0.166    0.200 
+    10 ability =~    t10   -0.301    1      Inf     
 
 逐行說明：
 

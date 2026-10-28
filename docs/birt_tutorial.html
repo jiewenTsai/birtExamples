@@ -2859,10 +2859,12 @@ ability  speed
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">scores</span>(fit), <span class="dv">3</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  id    ability ability_psd     speed speed_psd
-1  1  0.8958965   0.4728554 0.4738054 0.1372432
-2  2  1.8232723   0.6000988 0.2090593 0.1375854
-3  3 -0.4233628   0.4620413 0.1692650 0.1371558</code></pre>
+<pre><code># A tibble: 3 × 5
+     id ability ability_psd speed speed_psd
+  &lt;int&gt;   &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;
+1     1   0.896       0.473 0.474     0.137
+2     2   1.82        0.600 0.209     0.138
+3     3  -0.423       0.462 0.169     0.137</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">reliability</span>(fit)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -3137,11 +3139,11 @@ tail              dlnorm(0, 4)</code></pre>
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">default =</span> <span class="fu">round</span>(ec<span class="sc">$</span>est[sel], <span class="dv">3</span>), <span class="at">bsem =</span> <span class="fu">round</span>(eb<span class="sc">$</span>est[sel], <span class="dv">3</span>),</span>
 <span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">prior_bsem =</span> eb<span class="sc">$</span>prior[sel])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       lhs op rhs default   bsem    prior_bsem
-11   speed =~  t1  -1.000 -1.000              
-12   speed =~  t2  -1.000 -1.000              
-21 ability =~  t1  -0.019  0.011 dnorm(0, 100)
-22 ability =~  t2  -0.284 -0.239 dnorm(0, 100)</code></pre>
+<pre><code>      lhs op rhs default   bsem    prior_bsem
+1   speed =~  t1  -1.000 -1.000              
+2   speed =~  t2  -1.000 -1.000              
+3 ability =~  t1  -0.019  0.011 dnorm(0, 100)
+4 ability =~  t2  -0.284 -0.239 dnorm(0, 100)</code></pre>
 </div>
 </div>
 <p>逐行說明：</p>
@@ -3217,7 +3219,7 @@ tail              dlnorm(0, 4)</code></pre>
 <p><code>birt()</code> 回傳一個清單。所有衍生量都存在物件裡，後續計算不必重跑模型。</p>
 <section id="摘要表物件" class="level3">
 <h3 class="anchored" data-anchor-id="摘要表物件">3.1 摘要表物件</h3>
-<p><code>summary(fit)</code> 回傳一個 S3 物件（<code>birt_summary</code>）。每張表都是 data.frame，印出時標上名字，所以看到 <code>$items</code> 就知道用 <code>s$items</code> 取出。</p>
+<p><code>summary(fit)</code> 回傳一個 S3 物件（<code>birt_summary</code>）。每張表都是 tibble（tidyverse 的資料框），印出時標上名字，所以看到 <code>$items</code> 就知道用 <code>s$items</code> 取出。</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">summary</span>(fit)</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(s)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
@@ -3350,8 +3352,10 @@ $fit  log marginal likelihood (ELGM)
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>e[e<span class="sc">$</span>op <span class="sc">==</span> <span class="st">&quot;~~&quot;</span> <span class="sc">&amp;</span> e<span class="sc">$</span>lhs <span class="sc">!=</span> e<span class="sc">$</span>rhs, ]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       lhs op   rhs        prior       est         sd      q025     q975
-21 ability ~~ speed dunif(-1, 1) 0.4236297 0.04849135 0.3255933 0.515475</code></pre>
+<pre><code># A tibble: 1 × 8
+  lhs     op    rhs   prior          est     sd  q025  q975
+  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 ability ~~    speed dunif(-1, 1) 0.424 0.0485 0.326 0.515</code></pre>
 </div>
 </div>
 <p>逐行說明：</p>
@@ -3733,10 +3737,12 @@ cross       AGHQ (k = 9)    51  13076.839  13178.839  13393.784    0.000    0.00
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">estimates</span>(fr)</span>
 <span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>e[e<span class="sc">$</span>op <span class="sc">==</span> <span class="st">&quot;~&quot;</span>, ]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     lhs op     rhs       prior         est         sd        q025       q975
-21 speed  ~ ability dnorm(0, 1) 0.156392622 0.01928591  0.11885361 0.19445301
-22 speed  ~      x1 dnorm(0, 1) 0.109207719 0.01582875  0.07818393 0.14023150
-23 speed  ~      x2 dnorm(0, 1) 0.009002823 0.01519686 -0.02078255 0.03878806</code></pre>
+<pre><code># A tibble: 3 × 8
+  lhs   op    rhs     prior           est     sd    q025   q975
+  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
+1 speed ~     ability dnorm(0, 1) 0.156   0.0193  0.119  0.194 
+2 speed ~     x1      dnorm(0, 1) 0.109   0.0158  0.0782 0.140 
+3 speed ~     x2      dnorm(0, 1) 0.00900 0.0152 -0.0208 0.0388</code></pre>
 </div>
 </div>
 <p>逐行說明：</p>
@@ -3784,7 +3790,7 @@ larger k_hyper</code></pre>
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
   Covariates: x1, x2
-  Approximate Bayes (ELGM; W = person latents): 46 parameters; 37 s
+  Approximate Bayes (ELGM; W = person latents): 46 parameters; 36 s
     inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on eps2, ldl2, Gaussian in 44 directions (81 nodes)
   log marginal likelihood -6872.74; -2logL at the posterior mode 13401.8
   Reliability: ability 0.762, speed 0.863
@@ -3818,7 +3824,7 @@ Use summary() for the parameter table and quantiles() / plot() for the quantile 
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
   Covariates: x1, x2
-  Approximate Bayes (ELGM; W = person latents): 46 parameters; 59 s
+  Approximate Bayes (ELGM; W = person latents): 46 parameters; 58 s
     inner: AGHQ (k = 9) per person; outer: AGHQ, k = 13 on eps2, ldl2, Gaussian in 44 directions (169 nodes)
   log marginal likelihood -6872.71; -2logL at the posterior mode 13401.8
   Reliability: ability 0.762, speed 0.863
@@ -3841,10 +3847,12 @@ Use summary() for the parameter table and quantiles() / plot() for the quantile 
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">estimates</span>(r_s)</span>
 <span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>e[e<span class="sc">$</span>lhs <span class="sc">==</span> <span class="st">&quot;speed&quot;</span> <span class="sc">&amp;</span> e<span class="sc">$</span>op <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;sd&quot;</span>, <span class="st">&quot;skew&quot;</span>, <span class="st">&quot;tail&quot;</span>), ]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     lhs   op rhs             prior       est         sd       q025      q975
-25 speed   sd     dt(0, 1, 3) T(0,) 0.3525204 0.02589243  0.2992570 0.4009343
-26 speed skew           dnorm(0, 1) 0.1048821 0.23443243 -0.2889200 0.6300383
-27 speed tail          dlnorm(0, 4) 1.5462275 0.50042495  0.9156419 2.8317612</code></pre>
+<pre><code># A tibble: 3 × 8
+  lhs   op    rhs   prior               est     sd   q025  q975
+  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;             &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+1 speed sd    &quot;&quot;    dt(0, 1, 3) T(0,) 0.353 0.0259  0.299 0.401
+2 speed skew  &quot;&quot;    dnorm(0, 1)       0.105 0.234  -0.289 0.630
+3 speed tail  &quot;&quot;    dlnorm(0, 4)      1.55  0.500   0.916 2.83 </code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">compare</span>(<span class="at">normal =</span> fr, <span class="at">shash =</span> r_s)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -3863,7 +3871,7 @@ BF_best: Bayes factor of the best model against each model (marginal likelihoods
 <p>輸出怎麼讀：</p>
 <ul>
 <li><code>skew</code> 的後驗平均數 0.105，95% 區間 [−0.289, 0.630] 包含 0：沒有偏態的證據。</li>
-<li><code>tail</code> 的後驗平均數 1.546，區間 [0.916, 2.832] 包含 1（常態）。</li>
+<li><code>tail</code> 的後驗平均數約 1.55，區間約 [0.92, 2.83]，包含 1（常態）。</li>
 <li><code>compare()</code>：常態模型的 logML 是 −6870.50，SHASH 是 −6872.71。資料對常態模型的 BF 是 9.09（<code>BF_best</code>）。</li>
 <li>模擬資料的 speed 本來就是常態的，所以 SHASH 多出的兩個參數換不到更好的邊際概似，這是預期的結果。</li>
 </ul>
@@ -4785,7 +4793,7 @@ P(y_{ij} &gt; k) &amp;= \text{logistic}\{a_{ij}(\theta_j - b_{ik} - \beta_i z_j)
   Distributions: SA: normal (log sd ~ logT); 8 ordinal: grm (categories 3/4)
   Covariates: logT
   Moderators: logT (shift logT: free 2; loading logT: equal 8)
-  Approximate Bayes (ELGM; W = person latents): 36 parameters; 5 s
+  Approximate Bayes (ELGM; W = person latents): 36 parameters; 4 s
     inner: AGHQ (k = 21) per person; outer: AGHQ, k = 11 on alpha1, Gaussian in 35 directions (11 nodes)
   log marginal likelihood -5171.77; -2logL at the posterior mode 10133.0
 
@@ -5284,7 +5292,7 @@ V(SA) ~ logT</code></pre>
 <pre><code>birt 0.1.0 [M2b]
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-  JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 20 s
+  JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 17 s
   Reliability: ability 0.805, speed 0.822
   LOOIC 13174.6 (SE 114.1), WAIC 13174.3, DIC 13176.0
 Use summary() for the parameter table.</code></pre>
@@ -5371,17 +5379,19 @@ ability =~ t10  -0.303       0.554   1.000    Inf  nonzero   strong for nonzero<
 <span id="cb134-2"><a href="#cb134-2" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="fu">estimates</span>(fx)</span>
 <span id="cb134-3"><a href="#cb134-3" aria-hidden="true" tabindex="-1"></a>e[<span class="sc">!</span><span class="fu">is.na</span>(e<span class="sc">$</span>p_incl), <span class="fu">c</span>(<span class="st">&quot;lhs&quot;</span>, <span class="st">&quot;op&quot;</span>, <span class="st">&quot;rhs&quot;</span>, <span class="st">&quot;est&quot;</span>, <span class="st">&quot;p_incl&quot;</span>, <span class="st">&quot;BF10&quot;</span>)]</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       lhs op rhs           est     p_incl       BF10
-21 ability =~  t1 -0.0013704212 0.07800000 0.08459870
-22 ability =~  t2 -0.2776761743 1.00000000        Inf
-23 ability =~  t3  0.0006949536 0.07400000 0.07991361
-24 ability =~  t4 -0.2928139637 1.00000000        Inf
-25 ability =~  t5 -0.0011689961 0.08666667 0.09489051
-26 ability =~  t6 -0.2691327298 1.00000000        Inf
-27 ability =~  t7  0.0001563747 0.06433333 0.06875668
-28 ability =~  t8 -0.2855777021 1.00000000        Inf
-29 ability =~  t9  0.0058599725 0.16633333 0.19952019
-30 ability =~ t10 -0.3011721289 1.00000000        Inf</code></pre>
+<pre><code># A tibble: 10 × 6
+   lhs     op    rhs         est p_incl     BF10
+   &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;
+ 1 ability =~    t1    -0.00137  0.0780   0.0846
+ 2 ability =~    t2    -0.278    1      Inf     
+ 3 ability =~    t3     0.000695 0.0740   0.0799
+ 4 ability =~    t4    -0.293    1      Inf     
+ 5 ability =~    t5    -0.00117  0.0867   0.0949
+ 6 ability =~    t6    -0.269    1      Inf     
+ 7 ability =~    t7     0.000156 0.0643   0.0688
+ 8 ability =~    t8    -0.286    1      Inf     
+ 9 ability =~    t9     0.00586  0.166    0.200 
+10 ability =~    t10   -0.301    1      Inf     </code></pre>
 </div>
 </div>
 <p>逐行說明：</p>
@@ -6730,7 +6740,7 @@ dlt_y6_logT  -0.025  1.060  500</code></pre>
 <span id="cb157-423"><a href="#cb157-423" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb157-424"><a href="#cb157-424" aria-hidden="true" tabindex="-1"></a><span class="fu">### 3.1 摘要表物件</span></span>
 <span id="cb157-425"><a href="#cb157-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb157-426"><a href="#cb157-426" aria-hidden="true" tabindex="-1"></a><span class="in">`summary(fit)`</span> 回傳一個 S3 物件（<span class="in">`birt_summary`</span>）。每張表都是 data.frame，印出時標上名字，所以看到 <span class="in">`$items`</span> 就知道用 <span class="in">`s$items`</span> 取出。</span>
+<span id="cb157-426"><a href="#cb157-426" aria-hidden="true" tabindex="-1"></a><span class="in">`summary(fit)`</span> 回傳一個 S3 物件（<span class="in">`birt_summary`</span>）。每張表都是 tibble（tidyverse 的資料框），印出時標上名字，所以看到 <span class="in">`$items`</span> 就知道用 <span class="in">`s$items`</span> 取出。</span>
 <span id="cb157-427"><a href="#cb157-427" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb157-428"><a href="#cb157-428" aria-hidden="true" tabindex="-1"></a><span class="in">```{r summary-object}</span></span>
 <span id="cb157-429"><a href="#cb157-429" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">summary</span>(fit)</span>
@@ -7040,7 +7050,7 @@ dlt_y6_logT  -0.025  1.060  500</code></pre>
 <span id="cb157-733"><a href="#cb157-733" aria-hidden="true" tabindex="-1"></a>輸出怎麼讀：</span>
 <span id="cb157-734"><a href="#cb157-734" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb157-735"><a href="#cb157-735" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`skew`</span> 的後驗平均數 0.105，95% 區間 <span class="co">[</span><span class="ot">−0.289, 0.630</span><span class="co">]</span> 包含 0：沒有偏態的證據。</span>
-<span id="cb157-736"><a href="#cb157-736" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`tail`</span> 的後驗平均數 1.546，區間 <span class="co">[</span><span class="ot">0.916, 2.832</span><span class="co">]</span> 包含 1（常態）。</span>
+<span id="cb157-736"><a href="#cb157-736" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`tail`</span> 的後驗平均數約 1.55，區間約 <span class="co">[</span><span class="ot">0.92, 2.83</span><span class="co">]</span>，包含 1（常態）。</span>
 <span id="cb157-737"><a href="#cb157-737" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`compare()`</span>：常態模型的 logML 是 −6870.50，SHASH 是 −6872.71。資料對常態模型的 BF 是 9.09（<span class="in">`BF_best`</span>）。</span>
 <span id="cb157-738"><a href="#cb157-738" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>模擬資料的 speed 本來就是常態的，所以 SHASH 多出的兩個參數換不到更好的邊際概似，這是預期的結果。</span>
 <span id="cb157-739"><a href="#cb157-739" aria-hidden="true" tabindex="-1"></a></span>
