@@ -74,12 +74,12 @@ remotes::install_github("jiewenTsai/birtRcpp")     # 需要 C++ 編譯器
 | 用途 | 需要 |
 |---|---|
 | birt 的 JAGS 引擎（spike-and-slab、ALD 分位數） | [JAGS](https://mcmc-jags.sourceforge.io/) 4.3 以上，以及 `install.packages(c("R2jags", "rjags"))` |
-| `dif_tree()`、分數檢定 | `partykit`、`strucchange`、`sandwich` |
+| 分數檢定 `score_test()` | `strucchange`、`sandwich`（`ipcr()` 不需要額外套件；已不建議使用的 `dif_tree()` 另需 `partykit`） |
 | birtRcpp 範例 11–13 的資料 | `LNIRT` |
 
 ## 版本
 
-這裡的輸出是用下列版本產生的（2026-10-28）：
+這裡的輸出是用下列版本產生的（2026-10-28；birtRcpp 入門在 2026-10-29 重新產生）：
 
 - R 4.5.3（macOS，aarch64）、Quarto 1.10.19
 - birt 0.1.0、birtRcpp 0.1.0

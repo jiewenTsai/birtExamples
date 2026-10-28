@@ -1,6 +1,6 @@
 # birtRcpp 入門
 Jie-Wen Tsai
-2026-10-28
+2026-10-29
 
 - [0. 這份教學怎麼讀](#0-這份教學怎麼讀)
 - [1. 載入](#1-載入)
@@ -48,7 +48,7 @@ Jie-Wen Tsai
 - 標題有「進階」的段落，第一次讀可以跳過。
 - 以 `#|` 開頭的行（例如 `#| fig-width: 8`）是這份文件設定圖片大小用的，不是 R 程式。自己寫程式時不用打。
 
-**想自己組模型的人：** 讀完這份之後，看第二份教學《birtRcpp 積木》。
+**想自己組模型的人：** 讀完這份之後，看第二份教學《birtRcpp 積木》。積木（`block_model()`）已不建議使用、不再加新功能；一般的分析用這份教學的 `ecm()`／`gibbs()` 就好。
 
 ### 先認識幾個詞
 
@@ -264,7 +264,7 @@ input_data(resp = items, time = times, cov = "gender", data = raw)
 - 第 1 行報錯（`Error`）：時間必須是正的秒數。log 時間會有負數，秒數不會，所以套件猜你給的是 log 時間。要改用 `log_time =`。
 - 第 2 行報錯：作答是 1/2 編碼。訊息建議用 `resp - 1` 改成 0/1。
 - 第 3、4 行沒有輸出。
-- 第 5 行報錯：有 1 個人缺 1 個值。現成的模型需要完整資料。訊息裡的 `complete.cases()` 會挑出沒有缺失的人，用它把有缺失的人刪掉。想保留有缺失的人，要用第二份教學的積木。
+- 第 5 行報錯：有 1 個人缺 1 個值。現成的模型需要完整資料。訊息裡的 `complete.cases()` 會挑出沒有缺失的人，用它把有缺失的人刪掉。目前支援中的模型都需要完整資料，沒有保留有缺失的人的作法。
 - 第 6 行是警告（`Warning`），不是錯誤：
   - 警告說性別的平均是 0.50，沒有置中。迴歸沒有截距，所以共變項要置中或標準化（下一段說明為什麼）。
   - 警告裡的另一個選項 `gibbs(intercept = TRUE)` 是讓 Gibbs 多估一個截距。這份教學不用它。
@@ -469,6 +469,7 @@ print(s, tables = c("fit", "parameters"))
 
     rtirt_cross
       600 persons x 10 items
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.3 s
 
     $fit  marginal likelihood (persons integrated out)
     method     logLik  npar    N        AIC        BIC
@@ -478,16 +479,16 @@ print(s, tables = c("fit", "parameters"))
 
     Discrimination (a):
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
-        item01             1.083    0.143    7.587    0.000     0.837     1.403
-        item02             0.898    0.129    6.944    0.000     0.677     1.190
-        item03             1.080    0.148    7.298    0.000     0.825     1.412
-        item04             1.022    0.137    7.457    0.000     0.786     1.330
-        item05             1.079    0.142    7.613    0.000     0.834     1.396
-        item06             1.095    0.149    7.373    0.000     0.839     1.429
-        item07             1.074    0.141    7.614    0.000     0.831     1.390
-        item08             0.701    0.116    6.025    0.000     0.507     0.971
-        item09             0.830    0.123    6.731    0.000     0.620     1.110
-        item10             1.190    0.152    7.848    0.000     0.927     1.528
+        item01             1.083    0.143                       0.837     1.403
+        item02             0.898    0.129                       0.677     1.190
+        item03             1.080    0.148                       0.825     1.412
+        item04             1.022    0.137                       0.786     1.330
+        item05             1.079    0.142                       0.834     1.396
+        item06             1.095    0.149                       0.839     1.429
+        item07             1.074    0.141                       0.831     1.390
+        item08             0.701    0.116                       0.507     0.971
+        item09             0.830    0.123                       0.620     1.110
+        item10             1.190    0.152                       0.927     1.528
 
     Difficulty (b):
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
@@ -504,29 +505,29 @@ print(s, tables = c("fit", "parameters"))
 
     Time intensity (lambda):
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
-        item01             2.194    0.047   46.184    0.000     2.100     2.287
-        item02             2.656    0.046   57.729    0.000     2.566     2.747
-        item03             3.073    0.046   67.374    0.000     2.984     3.162
-        item04             3.081    0.047   64.900    0.000     2.988     3.174
-        item05             2.337    0.050   46.944    0.000     2.239     2.434
-        item06             2.976    0.048   61.924    0.000     2.882     3.071
-        item07             2.418    0.046   52.516    0.000     2.328     2.508
-        item08             3.372    0.047   71.748    0.000     3.280     3.464
-        item09             3.036    0.047   64.889    0.000     2.944     3.128
-        item10             2.765    0.045   61.336    0.000     2.677     2.853
+        item01             2.194    0.047                       2.100     2.287
+        item02             2.656    0.046                       2.566     2.747
+        item03             3.073    0.046                       2.984     3.162
+        item04             3.081    0.047                       2.988     3.174
+        item05             2.337    0.050                       2.239     2.434
+        item06             2.976    0.048                       2.882     3.071
+        item07             2.418    0.046                       2.328     2.508
+        item08             3.372    0.047                       3.280     3.464
+        item09             3.036    0.047                       2.944     3.128
+        item10             2.765    0.045                       2.677     2.853
 
     Residual variance of log RT (sigma2t):
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
-        item01             0.375    0.025   15.026    0.000     0.329     0.427
-        item02             0.259    0.017   15.136    0.000     0.227     0.294
-        item03             0.246    0.019   12.839    0.000     0.211     0.286
-        item04             0.339    0.022   15.644    0.000     0.299     0.384
-        item05             0.328    0.024   13.939    0.000     0.285     0.378
-        item06             0.376    0.024   15.809    0.000     0.332     0.425
-        item07             0.296    0.019   15.584    0.000     0.261     0.335
-        item08             0.351    0.022   15.850    0.000     0.310     0.397
-        item09             0.292    0.019   15.282    0.000     0.257     0.332
-        item10             0.244    0.016   15.210    0.000     0.215     0.278
+        item01             0.375    0.025                       0.329     0.427
+        item02             0.259    0.017                       0.227     0.294
+        item03             0.246    0.019                       0.211     0.286
+        item04             0.339    0.022                       0.299     0.384
+        item05             0.328    0.024                       0.285     0.378
+        item06             0.376    0.024                       0.332     0.425
+        item07             0.296    0.019                       0.261     0.335
+        item08             0.351    0.022                       0.310     0.397
+        item09             0.292    0.019                       0.257     0.332
+        item10             0.244    0.016                       0.215     0.278
 
     Cross-relation of ability with log RT (rho):
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
@@ -543,7 +544,7 @@ print(s, tables = c("fit", "parameters"))
 
     Structural:
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
-        var_speed          0.965    0.058   16.695    0.000     0.858     1.085
+        var_speed          0.965    0.058                       0.858     1.085
 
 **逐行說明**
 
@@ -605,7 +606,7 @@ reliability(fit)
   - `parameter` 是參數名稱，方括號裡是題名；
   - `est` 估計值、`se` 標準誤、`z` 是 z 值；
   - `q025` 與 `q975` 是 Wald 95% 區間的兩端，也就是 est ± 1.96 × se。名字借自 Gibbs 的 2.5 與 97.5 百分位數（第 5 節）；
-  - `sig` 欄的 `*` 表示 95% 區間不含 0。前 3 題都有 `*`。
+  - `sig` 欄的 `*` 表示 95% 區間不含 0，空白表示含 0。前 3 題都有 `*`。`sig` 只用在「等於 0」有意義的參數（b、β、ρ、相關、`b_ability`）；a、λ、σ² 與 `var_speed` 的 `sig` 是 `NA`：a 與變異數一定是正的，它們的區間在 log 尺度上算，永遠不含 0，打星號沒有意義。
 - `scores()`：一列一人。
   - `id` 是 `input_data()` 給的 ID；
   - `ability`、`speed` 是 EAP；`ability_psd`、`speed_psd` 是 PSD；
@@ -809,9 +810,10 @@ g
 
     rtirt_cross 
       600 persons x 10 items
-      3 chains x 2000 iterations (burn-in 1000, thin 1); 4.9 s
+      3 chains x 2000 iterations (burn-in 1000, thin 1); 4.8 s
       Reliability: ability 0.745, speed 0.962
       Marginal: DIC 19994.8 (pD 50.7), WAIC 19995.8, LOOIC 19996.5
+      Warning: only 98.0% of 51 parameters have ESS > 400 and R-hat < 1.05 (max R-hat 1.02, min ESS 396); run longer (n_iter) or see convergence()
     Use summary(), coef(), scores(), estimates(), convergence(), fit_indices(), plot().
 
 **逐行說明**
@@ -833,7 +835,7 @@ g
   - 這裡 DIC 是 19994.8，和 ECM 的 AIC 19995.1 幾乎一樣。
   - 括號裡的 `pD` 是「有效參數個數」，這裡 50.7，和 `npar` 51 差不多。
 - 最後一行列出可以用的函數。
-- 如果有參數的 R̂ 超過 1.05，這裡會多一行警告。這次沒有。
+- 如果有參數沒有達到 `convergence()` 的標準（ESS \> 400 而且 R̂ \< 1.05），或只跑了一條鏈（算不出 R̂），這裡會多一行 `Warning`。這次有一行：51 個參數裡只有 98.0% 過關（下面的 `convergence()` 會列出是哪一個）。教學為了快只跑 2000 次；正式分析把 `n_iter` 加大，警告就會消失。沒有警告，才表示每個參數都過了這個標準。
 
 ### 和 ECM 比較
 
@@ -904,7 +906,7 @@ convergence(g)
   - `est` 後驗平均數、`sd` 後驗 SD；
   - `q025` 與 `q975` 是 95% 後驗區間（後驗分配的 2.5 與 97.5 百分位數）；
   - `rhat`、`ess`：每個參數的 R̂ 與 ESS；
-  - `sig` 的 `*` 表示 95% 區間不含 0。
+  - `sig` 的 `*` 表示 95% 區間不含 0（只用在 b、β、ρ 這類「等於 0」有意義的參數，其他是 `NA`）。
 - 前 3 題 ρ 的 R̂ 都接近 1，ESS 都超過 1300。
 - `convergence()`：
   - 第一行：51 個參數裡，98.0%（51 個中的 50 個）的 ESS \> 400 而且 R̂ \< 1.05；
@@ -1071,7 +1073,7 @@ estimates(ej, pars = "beta|cor|var_speed")
     3 beta_speed[x1]     0.172  0.0203   8.50  0.133  0.212  "*"  
     4 beta_speed[x2]    -0.317  0.0200 -15.8  -0.357 -0.278  "*"  
     5 cor_ability_speed -0.392  0.0410  -9.57 -0.469 -0.309  "*"  
-    6 var_speed          0.307  0.0170  18.0   0.275  0.342  "*"  
+    6 var_speed          0.307  0.0170  NA     0.275  0.342  <NA> 
 
 **逐行說明**
 
@@ -1088,7 +1090,7 @@ estimates(ej, pars = "beta|cor|var_speed")
   - 估計值約 −0.39，標準誤 0.04。真值是 −0.3。
   - 差了約 2 個標準誤。這是這一份樣本的抽樣誤差：同樣的設定重複模擬很多次，平均會接近 −0.3（重複模擬的做法見第 10 節）。
 - `var_speed`：速度的殘差變異數，約 0.31（模擬時的真值是 0.3）。
-- `sig` 欄有 `*` 的，95% 區間不含 0。只有 `beta_ability[x1]` 的區間含 0。
+- `sig` 欄有 `*` 的，95% 區間不含 0。只有 `beta_ability[x1]` 的區間含 0。`var_speed` 一定是正的，所以 `sig` 是 `NA`。
 
 **概似比檢定：共變項有沒有用**
 
@@ -1330,7 +1332,7 @@ total_logtime <- rowSums(dat$log_t)
 print(score_test(fit, total_logtime, by_item = TRUE))
 ```
 
-    the moderator correlates 0.15 with the ability EAPs: differences in mean ability (impact) show up as shifts of every b; to test DIF beyond impact, put the moderator in the latent regression (e.g. rtirt_latreg(input_data(..., cov = z))) and test that fit
+    the moderator correlates 0.15 with the ability EAPs: differences in mean ability (impact) show up as shifts of every b; to test DIF beyond impact, put the moderator in the latent regression (e.g. ecm(input_data(..., cov = z), model = "latreg"), z centred) and test that fit
 
     Score-based test of parameter invariance (DM test, numeric moderator, block decorrelation)
      parameters  n statistic p.value p.holm
@@ -1543,9 +1545,12 @@ summary(fq)
 |----|----|
 | 用 `ecm()` 還是 `gibbs()` | 先用 `ecm()`。需要後驗區間、分位數模型或 `person_fit()` 時，再用 `gibbs(dat, model = ..., init = fit)`（第 5 節的表） |
 | `ecm()` 的 `converged` 是 `FALSE` | 把 `max_iter` 加大：`control = ecm_control(max_iter = 5000)`。仍然不收斂，常是樣本太小或參數接近邊界：試 `prior = "map"` |
-| 標準誤是 NA 或很大 | 參數接近邊界（例如變異數接近 0）。用 `prior = "map"` 或 `gibbs()` |
-| R̂ 大於 1.05 | 把 `n_iter` 加大。2PL 模型可以加 `gibbs(..., control = gibbs_control(collapse = TRUE))`：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大 |
-| 有缺失值 | 現成的模型需要完整資料；要處理缺失，用第二份教學的積木 |
+| 標準誤是 NA 或很大 | 參數接近邊界（例如變異數接近 0），或樣本太小。`print(fit)` 遇到 \|b\| \> 6、a \< 0.1 或 \> 10、標準誤 \> 5 時會多一行 `Warning: extreme estimates ...`。用 `prior = "map"` 或 `gibbs()` |
+| 參數名稱打錯，或把 `nodes`、`n_burnin` 直接寫進 `ecm()`／`gibbs()` | 會立刻報錯，不會先跑完：設定放進 `control = ecm_control(nodes = 61)` 或 `control = gibbs_control(n_burnin = 500)`；打錯的名字（例如 `niter`）訊息會提示正確的（`n_iter`） |
+| R̂ 大於 1.05，或 ESS 小於 400（`print(g)` 的 `Warning`） | 把 `n_iter` 加大。2PL 模型可以加 `gibbs(..., control = gibbs_control(collapse = TRUE))`：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大 |
+| 有缺失值 | 目前支援中的模型需要完整資料：用 `complete.cases()` 刪掉有缺失的人（第 3 節）。舊的積木（`block_model()`）能宣告有缺失的資料，但已不建議使用、不再加新功能 |
+| 資料是一列一個「人 × 題」（長格式，例如 PsychoPy、E-Prime 匯出的） | `input_data()` 會報錯並提示怎麼轉成寬格式（一列一人、一欄一題），例如 `tidyr::pivot_wider(long, id_cols = id, names_from = item, values_from = c(correct, rt))` |
+| 共變項是類別（性別、組別） | 先做虛擬編碼再置中：k 個類別要 k − 1 個欄位，例如 `model.matrix(~ grade, raw)[, -1]`；兩類的可以寫 `raw$female <- as.numeric(raw$gender == "F")` |
 | 共變項要不要置中 | 要（第 3 節） |
 | 時間單位 | 秒數用 `time =`；已經取 log 用 `log_time =` |
 | 分位數的結果怎麼報告 | 和平均數模型一起報告；極端分位數的 ρ 會偏大（第 8 節） |
@@ -1645,49 +1650,36 @@ print(check_sampler(fC, seed = 1))
 2.  E 步和目標函數一致：在目前的參數上，Q 的梯度（斜率）等於目標函數的梯度。這叫 Fisher 恆等式；
 3.  停下來的地方是最大值：換一個一般的最佳化方法，也找不到更好的點。
 
-`check_ecm()` 從很多個起點檢查這三件事。它檢查的是用積木（`block_model()`）組出來的模型，所以下面用積木寫一個 2PL。積木的寫法見第二份教學，這裡只看結果。`block_model()` 已不建議使用（不再加新功能），這裡只用它示範這個檢查。
+`check_ecm()` 從很多個起點檢查這三件事。把 `ecm()` 的結果直接交給它就好：它檢查的是 `ecm()` 這個模型用的 E 步與 M 步。
 
 ``` r
-set.seed(1)
-th <- rnorm(200)
-Yc <- matrix(rbinom(200 * 5, 1, plogis(outer(th, seq(-1, 1, length.out = 5), "-"))), 200)
-m2pl <- block_model(Y = Yc,
-  theta[person] ~ normal(0, 1),
-  a[item] ~ normal(1, 1, lower = 0),
-  b[item] ~ normal(0, 3),
-  Y ~ bernoulli_logit(a * (theta - b)))
-print(check_ecm(m2pl, seed = 1))
+condE <- set_cond(n_subj = 200, n_item = 5)
+dE <- sim_data(condE, sim_para(condE, "cross"), "cross")
+fE <- ecm(dE, model = "cross", se = FALSE)
+print(check_ecm(fE, prior = "ml", seed = 1))
 ```
 
     ECM check (10 starting values): all checks passed
                                                                                 check
-                                            each step raises Q(. | x) (relative drop)
                              one iteration never lowers the objective (relative drop)
      Fisher identity: gradient of the objective = gradient of Q (relative difference)
                        ECM stops at a maximum: gain of a general optimizer (relative)
                                            ECM stops at a maximum: largest |gradient|
-        worst limit passed detail
-     0.00e+00 1e-08   TRUE       
-     0.00e+00 1e-08   TRUE       
-     5.56e-09 1e-04   TRUE       
-     4.42e-14 1e-06   TRUE       
-     3.02e-05 1e-02   TRUE       
+        worst limit passed                 detail
+     0.00e+00 1e-08   TRUE em_mstep(): all blocks
+     1.43e-09 1e-04   TRUE             em_score()
+     4.90e-13 1e-06   TRUE                       
+     3.41e-04 1e-02   TRUE                       
 
 **逐行說明**
 
-1.  固定亂數。
-2.  200 人的真實能力。
-3.  模擬 200 人 × 5 題的 0/1 作答：
-    - `seq(-1, 1, length.out = 5)`：5 題的難度，從 −1 到 1 等距；
-    - `outer(th, 難度, "-")`：每個人的能力減掉每一題的難度，得到 200 × 5 的矩陣；
-    - `plogis()`：轉成答對機率。鑑別度全部是 1；
-    - `rbinom()` 依機率抽 0/1，`matrix(..., 200)` 排成 200 列。
-4.  `block_model()`：用積木寫 2PL。這一行給資料。
-5.  能力：每個人一個，標準常態。
-6.  鑑別度：每題一個，先驗 N⁺(1, 1)。
-7.  難度：每題一個，先驗 N(0, 3²)。
-8.  作答：2PL。
-9.  `check_ecm()`：檢查這個模型的 ECM。`print()` 連第一行的結論一起印。
+1.  小的設定：200 人、5 題。檢查只需要小資料，跑得快。
+2.  模擬一份交叉關係模型的資料。
+3.  用 ECM 配適 `"cross"` 模型。`se = FALSE` 不算標準誤，比較快。
+4.  `check_ecm()`：檢查這個模型的 ECM。
+    - `prior = "ml"`：檢查最大概似的目標函數，和上一行的配適一致（`prior = "map"` 則檢查加上先驗的目標）；
+    - `seed = 1`：起點是隨機擾動的，固定亂數讓結果可以重現；
+    - `print()` 連第一行的結論一起印。
 
 **輸出怎麼讀**
 
@@ -1696,11 +1688,12 @@ print(check_ecm(m2pl, seed = 1))
   - `worst`：所有起點裡最差的值；
   - `limit`：容許的上限；
   - `passed`：`worst` 小於 `limit` 就是 `TRUE`；
-  - `detail`：沒通過時的說明。全部通過，所以是空的。
-- 五項檢查對應上面三件事：
-  - 第 1、2 列（`raises Q`、`never lowers the objective`）是第 1 件事，最差的下降量是 0；
-  - 第 3 列（`Fisher identity`）是第 2 件事；
-  - 第 4、5 列（`ECM stops at a maximum`）是第 3 件事：一般的最佳化方法幾乎找不到更好的點，梯度也接近 0。
+  - `detail`：這項檢查用到套件裡的哪個函數。
+- 四項檢查對應上面三件事：
+  - 第 1 列（`never lowers the objective`）是第 1 件事：一次完整的 M 步（`em_mstep()`）從每個起點都不讓目標函數變小，最差的下降量是 0；
+  - 第 2 列（`Fisher identity`）是第 2 件事：E 步算出的分數（`em_score()`）等於目標函數的數值梯度；
+  - 第 3、4 列（`ECM stops at a maximum`）是第 3 件事：一般的最佳化方法幾乎找不到更好的點，梯度也接近 0。
+- `gibbs()` 的結果也可以交給 `check_ecm()`（它只用到模型與資料）；分位數模型沒有 ECM，不能檢查。
 
 ### 其他比對
 

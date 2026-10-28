@@ -2443,7 +2443,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">发布于</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026年10月28日</p>
+      <p class="date">2026年10月29日</p>
     </div>
   </div>
   
@@ -2483,7 +2483,7 @@ window.Quarto = {
 <li>標題有「進階」的段落，第一次讀可以跳過。</li>
 <li>以 <code>#|</code> 開頭的行（例如 <code>#| fig-width: 8</code>）是這份文件設定圖片大小用的，不是 R 程式。自己寫程式時不用打。</li>
 </ul>
-<p><strong>想自己組模型的人：</strong> 讀完這份之後，看第二份教學《birtRcpp 積木》。</p>
+<p><strong>想自己組模型的人：</strong> 讀完這份之後，看第二份教學《birtRcpp 積木》。積木（<code>block_model()</code>）已不建議使用、不再加新功能；一般的分析用這份教學的 <code>ecm()</code>／<code>gibbs()</code> 就好。</p>
 <section id="先認識幾個詞" class="level3">
 <h3 class="anchored" data-anchor-id="先認識幾個詞">先認識幾個詞</h3>
 <p>下面的詞很多。第一次讀時先瀏覽一遍就好，後面遇到再回來查。</p>
@@ -2889,7 +2889,7 @@ no intercept, so centre or standardize them (or use gibbs(intercept = TRUE))</co
 <li>第 1 行報錯（<code>Error</code>）：時間必須是正的秒數。log 時間會有負數，秒數不會，所以套件猜你給的是 log 時間。要改用 <code>log_time =</code>。</li>
 <li>第 2 行報錯：作答是 1/2 編碼。訊息建議用 <code>resp - 1</code> 改成 0/1。</li>
 <li>第 3、4 行沒有輸出。</li>
-<li>第 5 行報錯：有 1 個人缺 1 個值。現成的模型需要完整資料。訊息裡的 <code>complete.cases()</code> 會挑出沒有缺失的人，用它把有缺失的人刪掉。想保留有缺失的人，要用第二份教學的積木。</li>
+<li>第 5 行報錯：有 1 個人缺 1 個值。現成的模型需要完整資料。訊息裡的 <code>complete.cases()</code> 會挑出沒有缺失的人，用它把有缺失的人刪掉。目前支援中的模型都需要完整資料，沒有保留有缺失的人的作法。</li>
 <li>第 6 行是警告（<code>Warning</code>），不是錯誤：
 <ul>
 <li>警告說性別的平均是 0.50，沒有置中。迴歸沒有截距，所以共變項要置中或標準化（下一段說明為什麼）。</li>
@@ -3335,6 +3335,7 @@ Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model =
 <div class="cell-output cell-output-stdout">
 <pre><code>rtirt_cross
   600 persons x 10 items
+  maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.3 s
 
 $fit  marginal likelihood (persons integrated out)
 method     logLik  npar    N        AIC        BIC
@@ -3344,16 +3345,16 @@ $parameters  ML estimate, SE, Wald z and 95% interval (log scale for a, sigma2t,
 
 Discrimination (a):
                     Estimate  Std.Err  z-value  P(&gt;|z|)  ci.lower  ci.upper
-    item01             1.083    0.143    7.587    0.000     0.837     1.403
-    item02             0.898    0.129    6.944    0.000     0.677     1.190
-    item03             1.080    0.148    7.298    0.000     0.825     1.412
-    item04             1.022    0.137    7.457    0.000     0.786     1.330
-    item05             1.079    0.142    7.613    0.000     0.834     1.396
-    item06             1.095    0.149    7.373    0.000     0.839     1.429
-    item07             1.074    0.141    7.614    0.000     0.831     1.390
-    item08             0.701    0.116    6.025    0.000     0.507     0.971
-    item09             0.830    0.123    6.731    0.000     0.620     1.110
-    item10             1.190    0.152    7.848    0.000     0.927     1.528
+    item01             1.083    0.143                       0.837     1.403
+    item02             0.898    0.129                       0.677     1.190
+    item03             1.080    0.148                       0.825     1.412
+    item04             1.022    0.137                       0.786     1.330
+    item05             1.079    0.142                       0.834     1.396
+    item06             1.095    0.149                       0.839     1.429
+    item07             1.074    0.141                       0.831     1.390
+    item08             0.701    0.116                       0.507     0.971
+    item09             0.830    0.123                       0.620     1.110
+    item10             1.190    0.152                       0.927     1.528
 
 Difficulty (b):
                     Estimate  Std.Err  z-value  P(&gt;|z|)  ci.lower  ci.upper
@@ -3370,29 +3371,29 @@ Difficulty (b):
 
 Time intensity (lambda):
                     Estimate  Std.Err  z-value  P(&gt;|z|)  ci.lower  ci.upper
-    item01             2.194    0.047   46.184    0.000     2.100     2.287
-    item02             2.656    0.046   57.729    0.000     2.566     2.747
-    item03             3.073    0.046   67.374    0.000     2.984     3.162
-    item04             3.081    0.047   64.900    0.000     2.988     3.174
-    item05             2.337    0.050   46.944    0.000     2.239     2.434
-    item06             2.976    0.048   61.924    0.000     2.882     3.071
-    item07             2.418    0.046   52.516    0.000     2.328     2.508
-    item08             3.372    0.047   71.748    0.000     3.280     3.464
-    item09             3.036    0.047   64.889    0.000     2.944     3.128
-    item10             2.765    0.045   61.336    0.000     2.677     2.853
+    item01             2.194    0.047                       2.100     2.287
+    item02             2.656    0.046                       2.566     2.747
+    item03             3.073    0.046                       2.984     3.162
+    item04             3.081    0.047                       2.988     3.174
+    item05             2.337    0.050                       2.239     2.434
+    item06             2.976    0.048                       2.882     3.071
+    item07             2.418    0.046                       2.328     2.508
+    item08             3.372    0.047                       3.280     3.464
+    item09             3.036    0.047                       2.944     3.128
+    item10             2.765    0.045                       2.677     2.853
 
 Residual variance of log RT (sigma2t):
                     Estimate  Std.Err  z-value  P(&gt;|z|)  ci.lower  ci.upper
-    item01             0.375    0.025   15.026    0.000     0.329     0.427
-    item02             0.259    0.017   15.136    0.000     0.227     0.294
-    item03             0.246    0.019   12.839    0.000     0.211     0.286
-    item04             0.339    0.022   15.644    0.000     0.299     0.384
-    item05             0.328    0.024   13.939    0.000     0.285     0.378
-    item06             0.376    0.024   15.809    0.000     0.332     0.425
-    item07             0.296    0.019   15.584    0.000     0.261     0.335
-    item08             0.351    0.022   15.850    0.000     0.310     0.397
-    item09             0.292    0.019   15.282    0.000     0.257     0.332
-    item10             0.244    0.016   15.210    0.000     0.215     0.278
+    item01             0.375    0.025                       0.329     0.427
+    item02             0.259    0.017                       0.227     0.294
+    item03             0.246    0.019                       0.211     0.286
+    item04             0.339    0.022                       0.299     0.384
+    item05             0.328    0.024                       0.285     0.378
+    item06             0.376    0.024                       0.332     0.425
+    item07             0.296    0.019                       0.261     0.335
+    item08             0.351    0.022                       0.310     0.397
+    item09             0.292    0.019                       0.257     0.332
+    item10             0.244    0.016                       0.215     0.278
 
 Cross-relation of ability with log RT (rho):
                     Estimate  Std.Err  z-value  P(&gt;|z|)  ci.lower  ci.upper
@@ -3409,7 +3410,7 @@ Cross-relation of ability with log RT (rho):
 
 Structural:
                     Estimate  Std.Err  z-value  P(&gt;|z|)  ci.lower  ci.upper
-    var_speed          0.965    0.058   16.695    0.000     0.858     1.085</code></pre>
+    var_speed          0.965    0.058                       0.858     1.085</code></pre>
 </div>
 </div>
 <p><strong>逐行說明</strong></p>
@@ -3551,7 +3552,7 @@ Structural:
 <li><code>parameter</code> 是參數名稱，方括號裡是題名；</li>
 <li><code>est</code> 估計值、<code>se</code> 標準誤、<code>z</code> 是 z 值；</li>
 <li><code>q025</code> 與 <code>q975</code> 是 Wald 95% 區間的兩端，也就是 est ± 1.96 × se。名字借自 Gibbs 的 2.5 與 97.5 百分位數（第 5 節）；</li>
-<li><code>sig</code> 欄的 <code>*</code> 表示 95% 區間不含 0。前 3 題都有 <code>*</code>。</li>
+<li><code>sig</code> 欄的 <code>*</code> 表示 95% 區間不含 0，空白表示含 0。前 3 題都有 <code>*</code>。<code>sig</code> 只用在「等於 0」有意義的參數（b、β、ρ、相關、<code>b_ability</code>）；a、λ、σ² 與 <code>var_speed</code> 的 <code>sig</code> 是 <code>NA</code>：a 與變異數一定是正的，它們的區間在 log 尺度上算，永遠不含 0，打星號沒有意義。</li>
 </ul></li>
 <li><code>scores()</code>：一列一人。
 <ul>
@@ -3845,9 +3846,10 @@ Estimation:
 <div class="cell-output cell-output-stdout">
 <pre><code>rtirt_cross 
   600 persons x 10 items
-  3 chains x 2000 iterations (burn-in 1000, thin 1); 4.9 s
+  3 chains x 2000 iterations (burn-in 1000, thin 1); 4.8 s
   Reliability: ability 0.745, speed 0.962
   Marginal: DIC 19994.8 (pD 50.7), WAIC 19995.8, LOOIC 19996.5
+  Warning: only 98.0% of 51 parameters have ESS &gt; 400 and R-hat &lt; 1.05 (max R-hat 1.02, min ESS 396); run longer (n_iter) or see convergence()
 Use summary(), coef(), scores(), estimates(), convergence(), fit_indices(), plot().</code></pre>
 </div>
 </div>
@@ -3874,7 +3876,7 @@ Use summary(), coef(), scores(), estimates(), convergence(), fit_indices(), plot
 <li>括號裡的 <code>pD</code> 是「有效參數個數」，這裡 50.7，和 <code>npar</code> 51 差不多。</li>
 </ul></li>
 <li>最後一行列出可以用的函數。</li>
-<li>如果有參數的 R̂ 超過 1.05，這裡會多一行警告。這次沒有。</li>
+<li>如果有參數沒有達到 <code>convergence()</code> 的標準（ESS &gt; 400 而且 R̂ &lt; 1.05），或只跑了一條鏈（算不出 R̂），這裡會多一行 <code>Warning</code>。這次有一行：51 個參數裡只有 98.0% 過關（下面的 <code>convergence()</code> 會列出是哪一個）。教學為了快只跑 2000 次；正式分析把 <code>n_iter</code> 加大，警告就會消失。沒有警告，才表示每個參數都過了這個標準。</li>
 </ul>
 </section>
 <section id="和-ecm-比較" class="level3">
@@ -4061,7 +4063,7 @@ rho[item09]  1.009  1752</code></pre>
 <li><code>est</code> 後驗平均數、<code>sd</code> 後驗 SD；</li>
 <li><code>q025</code> 與 <code>q975</code> 是 95% 後驗區間（後驗分配的 2.5 與 97.5 百分位數）；</li>
 <li><code>rhat</code>、<code>ess</code>：每個參數的 R̂ 與 ESS；</li>
-<li><code>sig</code> 的 <code>*</code> 表示 95% 區間不含 0。</li>
+<li><code>sig</code> 的 <code>*</code> 表示 95% 區間不含 0（只用在 b、β、ρ 這類「等於 0」有意義的參數，其他是 <code>NA</code>）。</li>
 </ul></li>
 <li>前 3 題 ρ 的 R̂ 都接近 1，ESS 都超過 1300。</li>
 <li><code>convergence()</code>：
@@ -4335,10 +4337,10 @@ map  1.23 1.00 0.93 1.46 0.52 0.86 1.00 1.10 0.54  0.95</code></pre>
 <td style="text-align: left;">var_speed</td>
 <td style="text-align: right;">0.3067056</td>
 <td style="text-align: right;">0.0170146</td>
-<td style="text-align: right;">18.026057</td>
+<td style="text-align: right;">NA</td>
 <td style="text-align: right;">0.2751067</td>
 <td style="text-align: right;">0.3419341</td>
-<td style="text-align: left;">*</td>
+<td style="text-align: left;">NA</td>
 </tr>
 </tbody>
 </table>
@@ -4362,7 +4364,7 @@ map  1.23 1.00 0.93 1.46 0.52 0.86 1.00 1.10 0.54  0.95</code></pre>
 <li>差了約 2 個標準誤。這是這一份樣本的抽樣誤差：同樣的設定重複模擬很多次，平均會接近 −0.3（重複模擬的做法見第 10 節）。</li>
 </ul></li>
 <li><code>var_speed</code>：速度的殘差變異數，約 0.31（模擬時的真值是 0.3）。</li>
-<li><code>sig</code> 欄有 <code>*</code> 的，95% 區間不含 0。只有 <code>beta_ability[x1]</code> 的區間含 0。</li>
+<li><code>sig</code> 欄有 <code>*</code> 的，95% 區間不含 0。只有 <code>beta_ability[x1]</code> 的區間含 0。<code>var_speed</code> 一定是正的，所以 <code>sig</code> 是 <code>NA</code>。</li>
 </ul>
 <p><strong>概似比檢定：共變項有沒有用</strong></p>
 <p><code>&quot;null&quot;</code> 就是 <code>&quot;latreg&quot;</code> 把迴歸係數設成 0 的版本，兩者巢套，可以做概似比檢定（做法同第 4 節）。</p>
@@ -4743,7 +4745,7 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>total_logtime <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(dat<span class="sc">$</span>log_t)</span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">score_test</span>(fit, total_logtime, <span class="at">by_item =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>the moderator correlates 0.15 with the ability EAPs: differences in mean ability (impact) show up as shifts of every b; to test DIF beyond impact, put the moderator in the latent regression (e.g. rtirt_latreg(input_data(..., cov = z))) and test that fit</code></pre>
+<pre><code>the moderator correlates 0.15 with the ability EAPs: differences in mean ability (impact) show up as shifts of every b; to test DIF beyond impact, put the moderator in the latent regression (e.g. ecm(input_data(..., cov = z), model = &quot;latreg&quot;), z centred) and test that fit</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Score-based test of parameter invariance (DM test, numeric moderator, block decorrelation)
@@ -5047,41 +5049,53 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 </tr>
 <tr class="odd">
 <td>標準誤是 NA 或很大</td>
-<td>參數接近邊界（例如變異數接近 0）。用 <code>prior = &quot;map&quot;</code> 或 <code>gibbs()</code></td>
+<td>參數接近邊界（例如變異數接近 0），或樣本太小。<code>print(fit)</code> 遇到 |b| &gt; 6、a &lt; 0.1 或 &gt; 10、標準誤 &gt; 5 時會多一行 <code>Warning: extreme estimates ...</code>。用 <code>prior = &quot;map&quot;</code> 或 <code>gibbs()</code></td>
 </tr>
 <tr class="even">
-<td>R̂ 大於 1.05</td>
-<td>把 <code>n_iter</code> 加大。2PL 模型可以加 <code>gibbs(..., control = gibbs_control(collapse = TRUE))</code>：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大</td>
+<td>參數名稱打錯，或把 <code>nodes</code>、<code>n_burnin</code> 直接寫進 <code>ecm()</code>／<code>gibbs()</code></td>
+<td>會立刻報錯，不會先跑完：設定放進 <code>control = ecm_control(nodes = 61)</code> 或 <code>control = gibbs_control(n_burnin = 500)</code>；打錯的名字（例如 <code>niter</code>）訊息會提示正確的（<code>n_iter</code>）</td>
 </tr>
 <tr class="odd">
-<td>有缺失值</td>
-<td>現成的模型需要完整資料；要處理缺失，用第二份教學的積木</td>
+<td>R̂ 大於 1.05，或 ESS 小於 400（<code>print(g)</code> 的 <code>Warning</code>）</td>
+<td>把 <code>n_iter</code> 加大。2PL 模型可以加 <code>gibbs(..., control = gibbs_control(collapse = TRUE))</code>：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大</td>
 </tr>
 <tr class="even">
+<td>有缺失值</td>
+<td>目前支援中的模型需要完整資料：用 <code>complete.cases()</code> 刪掉有缺失的人（第 3 節）。舊的積木（<code>block_model()</code>）能宣告有缺失的資料，但已不建議使用、不再加新功能</td>
+</tr>
+<tr class="odd">
+<td>資料是一列一個「人 × 題」（長格式，例如 PsychoPy、E-Prime 匯出的）</td>
+<td><code>input_data()</code> 會報錯並提示怎麼轉成寬格式（一列一人、一欄一題），例如 <code>tidyr::pivot_wider(long, id_cols = id, names_from = item, values_from = c(correct, rt))</code></td>
+</tr>
+<tr class="even">
+<td>共變項是類別（性別、組別）</td>
+<td>先做虛擬編碼再置中：k 個類別要 k − 1 個欄位，例如 <code>model.matrix(~ grade, raw)[, -1]</code>；兩類的可以寫 <code>raw$female &lt;- as.numeric(raw$gender == &quot;F&quot;)</code></td>
+</tr>
+<tr class="odd">
 <td>共變項要不要置中</td>
 <td>要（第 3 節）</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>時間單位</td>
 <td>秒數用 <code>time =</code>；已經取 log 用 <code>log_time =</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>分位數的結果怎麼報告</td>
 <td>和平均數模型一起報告；極端分位數的 ρ 會偏大（第 8 節）</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>舊程式用 <code>rtirt_cross(dat)</code> 這類函數</td>
 <td>還能用，但會警告。改成 <code>ecm(dat, model = &quot;cross&quot;)</code>、<code>gibbs(dat, model = &quot;cross&quot;)</code>；<code>gibbs(fit, init = &quot;ecm&quot;)</code> 改成 <code>gibbs(dat, model = &quot;cross&quot;, init = fit)</code>；<code>nodes</code>、<code>max_iter</code> 等改放進 <code>ecm_control()</code>，<code>n_burnin</code>、<code>collapse</code>、<code>verbose</code>、<code>fit_indices</code> 改放進 <code>gibbs_control()</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>舊程式用 <code>em()</code>、<code>check_em()</code></td>
 <td>改名了：<code>ecm()</code>、<code>check_ecm()</code>。<code>map = TRUE</code> 改成 <code>prior = &quot;map&quot;</code>，<code>Q =</code> 改成 <code>ecm_control(nodes = )</code>，<code>fit$em</code> 改成 <code>fit$ecm</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>估計前想看模型的式子</td>
 <td><code>equations(dat, model = &quot;cross&quot;)</code>；演算法的步驟：<code>algorithm(dat, model = &quot;cross&quot;)</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>想看抽樣器每一步在算什麼</td>
 <td><code>algorithm(fit)</code>，見第二份教學</td>
 </tr>
@@ -5210,50 +5224,37 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <li>E 步和目標函數一致：在目前的參數上，Q 的梯度（斜率）等於目標函數的梯度。這叫 Fisher 恆等式；</li>
 <li>停下來的地方是最大值：換一個一般的最佳化方法，也找不到更好的點。</li>
 </ol>
-<p><code>check_ecm()</code> 從很多個起點檢查這三件事。它檢查的是用積木（<code>block_model()</code>）組出來的模型，所以下面用積木寫一個 2PL。積木的寫法見第二份教學，這裡只看結果。<code>block_model()</code> 已不建議使用（不再加新功能），這裡只用它示範這個檢查。</p>
+<p><code>check_ecm()</code> 從很多個起點檢查這三件事。把 <code>ecm()</code> 的結果直接交給它就好：它檢查的是 <code>ecm()</code> 這個模型用的 E 步與 M 步。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>th <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">200</span>)</span>
-<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>Yc <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rbinom</span>(<span class="dv">200</span> <span class="sc">*</span> <span class="dv">5</span>, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fu">outer</span>(th, <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">5</span>), <span class="st">&quot;-&quot;</span>))), <span class="dv">200</span>)</span>
-<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>m2pl <span class="ot">&lt;-</span> <span class="fu">block_model</span>(<span class="at">Y =</span> Yc,</span>
-<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>  theta[person] <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>  a[item] <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">lower =</span> <span class="dv">0</span>),</span>
-<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>  b[item] <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>),</span>
-<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>  Y <span class="sc">~</span> <span class="fu">bernoulli_logit</span>(a <span class="sc">*</span> (theta <span class="sc">-</span> b)))</span>
-<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">check_ecm</span>(m2pl, <span class="at">seed =</span> <span class="dv">1</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>condE <span class="ot">&lt;-</span> <span class="fu">set_cond</span>(<span class="at">n_subj =</span> <span class="dv">200</span>, <span class="at">n_item =</span> <span class="dv">5</span>)</span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>dE <span class="ot">&lt;-</span> <span class="fu">sim_data</span>(condE, <span class="fu">sim_para</span>(condE, <span class="st">&quot;cross&quot;</span>), <span class="st">&quot;cross&quot;</span>)</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>fE <span class="ot">&lt;-</span> <span class="fu">ecm</span>(dE, <span class="at">model =</span> <span class="st">&quot;cross&quot;</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">check_ecm</span>(fE, <span class="at">prior =</span> <span class="st">&quot;ml&quot;</span>, <span class="at">seed =</span> <span class="dv">1</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>ECM check (10 starting values): all checks passed
                                                                             check
-                                        each step raises Q(. | x) (relative drop)
                          one iteration never lowers the objective (relative drop)
  Fisher identity: gradient of the objective = gradient of Q (relative difference)
                    ECM stops at a maximum: gain of a general optimizer (relative)
                                        ECM stops at a maximum: largest |gradient|
-    worst limit passed detail
- 0.00e+00 1e-08   TRUE       
- 0.00e+00 1e-08   TRUE       
- 5.56e-09 1e-04   TRUE       
- 4.42e-14 1e-06   TRUE       
- 3.02e-05 1e-02   TRUE       </code></pre>
+    worst limit passed                 detail
+ 0.00e+00 1e-08   TRUE em_mstep(): all blocks
+ 1.43e-09 1e-04   TRUE             em_score()
+ 4.90e-13 1e-06   TRUE                       
+ 3.41e-04 1e-02   TRUE                       </code></pre>
 </div>
 </div>
 <p><strong>逐行說明</strong></p>
 <ol type="1">
-<li>固定亂數。</li>
-<li>200 人的真實能力。</li>
-<li>模擬 200 人 × 5 題的 0/1 作答：
+<li>小的設定：200 人、5 題。檢查只需要小資料，跑得快。</li>
+<li>模擬一份交叉關係模型的資料。</li>
+<li>用 ECM 配適 <code>&quot;cross&quot;</code> 模型。<code>se = FALSE</code> 不算標準誤，比較快。</li>
+<li><code>check_ecm()</code>：檢查這個模型的 ECM。
 <ul>
-<li><code>seq(-1, 1, length.out = 5)</code>：5 題的難度，從 −1 到 1 等距；</li>
-<li><code>outer(th, 難度, &quot;-&quot;)</code>：每個人的能力減掉每一題的難度，得到 200 × 5 的矩陣；</li>
-<li><code>plogis()</code>：轉成答對機率。鑑別度全部是 1；</li>
-<li><code>rbinom()</code> 依機率抽 0/1，<code>matrix(..., 200)</code> 排成 200 列。</li>
+<li><code>prior = &quot;ml&quot;</code>：檢查最大概似的目標函數，和上一行的配適一致（<code>prior = &quot;map&quot;</code> 則檢查加上先驗的目標）；</li>
+<li><code>seed = 1</code>：起點是隨機擾動的，固定亂數讓結果可以重現；</li>
+<li><code>print()</code> 連第一行的結論一起印。</li>
 </ul></li>
-<li><code>block_model()</code>：用積木寫 2PL。這一行給資料。</li>
-<li>能力：每個人一個，標準常態。</li>
-<li>鑑別度：每題一個，先驗 N⁺(1, 1)。</li>
-<li>難度：每題一個，先驗 N(0, 3²)。</li>
-<li>作答：2PL。</li>
-<li><code>check_ecm()</code>：檢查這個模型的 ECM。<code>print()</code> 連第一行的結論一起印。</li>
 </ol>
 <p><strong>輸出怎麼讀</strong></p>
 <ul>
@@ -5263,14 +5264,15 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <li><code>worst</code>：所有起點裡最差的值；</li>
 <li><code>limit</code>：容許的上限；</li>
 <li><code>passed</code>：<code>worst</code> 小於 <code>limit</code> 就是 <code>TRUE</code>；</li>
-<li><code>detail</code>：沒通過時的說明。全部通過，所以是空的。</li>
+<li><code>detail</code>：這項檢查用到套件裡的哪個函數。</li>
 </ul></li>
-<li>五項檢查對應上面三件事：
+<li>四項檢查對應上面三件事：
 <ul>
-<li>第 1、2 列（<code>raises Q</code>、<code>never lowers the objective</code>）是第 1 件事，最差的下降量是 0；</li>
-<li>第 3 列（<code>Fisher identity</code>）是第 2 件事；</li>
-<li>第 4、5 列（<code>ECM stops at a maximum</code>）是第 3 件事：一般的最佳化方法幾乎找不到更好的點，梯度也接近 0。</li>
+<li>第 1 列（<code>never lowers the objective</code>）是第 1 件事：一次完整的 M 步（<code>em_mstep()</code>）從每個起點都不讓目標函數變小，最差的下降量是 0；</li>
+<li>第 2 列（<code>Fisher identity</code>）是第 2 件事：E 步算出的分數（<code>em_score()</code>）等於目標函數的數值梯度；</li>
+<li>第 3、4 列（<code>ECM stops at a maximum</code>）是第 3 件事：一般的最佳化方法幾乎找不到更好的點，梯度也接近 0。</li>
 </ul></li>
+<li><code>gibbs()</code> 的結果也可以交給 <code>check_ecm()</code>（它只用到模型與資料）；分位數模型沒有 ECM，不能檢查。</li>
 </ul>
 </section>
 <section id="其他比對" class="level3">
@@ -5805,7 +5807,7 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <span id="cb82-49"><a href="#cb82-49" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>標題有「進階」的段落，第一次讀可以跳過。</span>
 <span id="cb82-50"><a href="#cb82-50" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>以 <span class="in">`#|`</span> 開頭的行（例如 <span class="in">`#| fig-width: 8`</span>）是這份文件設定圖片大小用的，不是 R 程式。自己寫程式時不用打。</span>
 <span id="cb82-51"><a href="#cb82-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-52"><a href="#cb82-52" aria-hidden="true" tabindex="-1"></a>**想自己組模型的人：** 讀完這份之後，看第二份教學《birtRcpp 積木》。</span>
+<span id="cb82-52"><a href="#cb82-52" aria-hidden="true" tabindex="-1"></a>**想自己組模型的人：** 讀完這份之後，看第二份教學《birtRcpp 積木》。積木（<span class="in">`block_model()`</span>）已不建議使用、不再加新功能；一般的分析用這份教學的 <span class="in">`ecm()`</span>／<span class="in">`gibbs()`</span> 就好。</span>
 <span id="cb82-53"><a href="#cb82-53" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb82-54"><a href="#cb82-54" aria-hidden="true" tabindex="-1"></a><span class="fu">### 先認識幾個詞</span></span>
 <span id="cb82-55"><a href="#cb82-55" aria-hidden="true" tabindex="-1"></a></span>
@@ -5991,7 +5993,7 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <span id="cb82-235"><a href="#cb82-235" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 1 行報錯（<span class="in">`Error`</span>）：時間必須是正的秒數。log 時間會有負數，秒數不會，所以套件猜你給的是 log 時間。要改用 <span class="in">`log_time =`</span>。</span>
 <span id="cb82-236"><a href="#cb82-236" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 2 行報錯：作答是 1/2 編碼。訊息建議用 <span class="in">`resp - 1`</span> 改成 0/1。</span>
 <span id="cb82-237"><a href="#cb82-237" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 3、4 行沒有輸出。</span>
-<span id="cb82-238"><a href="#cb82-238" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 5 行報錯：有 1 個人缺 1 個值。現成的模型需要完整資料。訊息裡的 <span class="in">`complete.cases()`</span> 會挑出沒有缺失的人，用它把有缺失的人刪掉。想保留有缺失的人，要用第二份教學的積木。</span>
+<span id="cb82-238"><a href="#cb82-238" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 5 行報錯：有 1 個人缺 1 個值。現成的模型需要完整資料。訊息裡的 <span class="in">`complete.cases()`</span> 會挑出沒有缺失的人，用它把有缺失的人刪掉。目前支援中的模型都需要完整資料，沒有保留有缺失的人的作法。</span>
 <span id="cb82-239"><a href="#cb82-239" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 6 行是警告（<span class="in">`Warning`</span>），不是錯誤：</span>
 <span id="cb82-240"><a href="#cb82-240" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>警告說性別的平均是 0.50，沒有置中。迴歸沒有截距，所以共變項要置中或標準化（下一段說明為什麼）。</span>
 <span id="cb82-241"><a href="#cb82-241" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>警告裡的另一個選項 <span class="in">`gibbs(intercept = TRUE)`</span> 是讓 Gibbs 多估一個截距。這份教學不用它。</span>
@@ -6183,7 +6185,7 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <span id="cb82-427"><a href="#cb82-427" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`parameter`</span> 是參數名稱，方括號裡是題名；</span>
 <span id="cb82-428"><a href="#cb82-428" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`est`</span> 估計值、<span class="in">`se`</span> 標準誤、<span class="in">`z`</span> 是 z 值；</span>
 <span id="cb82-429"><a href="#cb82-429" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`q025`</span> 與 <span class="in">`q975`</span> 是 Wald 95% 區間的兩端，也就是 est ± 1.96 × se。名字借自 Gibbs 的 2.5 與 97.5 百分位數（第 5 節）；</span>
-<span id="cb82-430"><a href="#cb82-430" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`sig`</span> 欄的 <span class="in">`*`</span> 表示 95% 區間不含 0。前 3 題都有 <span class="in">`*`</span>。</span>
+<span id="cb82-430"><a href="#cb82-430" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`sig`</span> 欄的 <span class="in">`*`</span> 表示 95% 區間不含 0，空白表示含 0。前 3 題都有 <span class="in">`*`</span>。<span class="in">`sig`</span> 只用在「等於 0」有意義的參數（b、β、ρ、相關、<span class="in">`b_ability`</span>）；a、λ、σ² 與 <span class="in">`var_speed`</span> 的 <span class="in">`sig`</span> 是 <span class="in">`NA`</span>：a 與變異數一定是正的，它們的區間在 log 尺度上算，永遠不含 0，打星號沒有意義。</span>
 <span id="cb82-431"><a href="#cb82-431" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`scores()`</span>：一列一人。</span>
 <span id="cb82-432"><a href="#cb82-432" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`id`</span> 是 <span class="in">`input_data()`</span> 給的 ID；</span>
 <span id="cb82-433"><a href="#cb82-433" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`ability`</span>、<span class="in">`speed`</span> 是 EAP；<span class="in">`ability_psd`</span>、<span class="in">`speed_psd`</span> 是 PSD；</span>
@@ -6363,7 +6365,7 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <span id="cb82-607"><a href="#cb82-607" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>這裡 DIC 是 19994.8，和 ECM 的 AIC 19995.1 幾乎一樣。</span>
 <span id="cb82-608"><a href="#cb82-608" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>括號裡的 <span class="in">`pD`</span> 是「有效參數個數」，這裡 50.7，和 <span class="in">`npar`</span> 51 差不多。</span>
 <span id="cb82-609"><a href="#cb82-609" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>最後一行列出可以用的函數。</span>
-<span id="cb82-610"><a href="#cb82-610" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>如果有參數的 R̂ 超過 1.05，這裡會多一行警告。這次沒有。</span>
+<span id="cb82-610"><a href="#cb82-610" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>如果有參數沒有達到 <span class="in">`convergence()`</span> 的標準（ESS &gt; 400 而且 R̂ &lt; 1.05），或只跑了一條鏈（算不出 R̂），這裡會多一行 <span class="in">`Warning`</span>。這次有一行：51 個參數裡只有 98.0% 過關（下面的 <span class="in">`convergence()`</span> 會列出是哪一個）。教學為了快只跑 2000 次；正式分析把 <span class="in">`n_iter`</span> 加大，警告就會消失。沒有警告，才表示每個參數都過了這個標準。</span>
 <span id="cb82-611"><a href="#cb82-611" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb82-612"><a href="#cb82-612" aria-hidden="true" tabindex="-1"></a><span class="fu">### 和 ECM 比較</span></span>
 <span id="cb82-613"><a href="#cb82-613" aria-hidden="true" tabindex="-1"></a></span>
@@ -6404,7 +6406,7 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <span id="cb82-648"><a href="#cb82-648" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`est`</span> 後驗平均數、<span class="in">`sd`</span> 後驗 SD；</span>
 <span id="cb82-649"><a href="#cb82-649" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`q025`</span> 與 <span class="in">`q975`</span> 是 95% 後驗區間（後驗分配的 2.5 與 97.5 百分位數）；</span>
 <span id="cb82-650"><a href="#cb82-650" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`rhat`</span>、<span class="in">`ess`</span>：每個參數的 R̂ 與 ESS；</span>
-<span id="cb82-651"><a href="#cb82-651" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`sig`</span> 的 <span class="in">`*`</span> 表示 95% 區間不含 0。</span>
+<span id="cb82-651"><a href="#cb82-651" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`sig`</span> 的 <span class="in">`*`</span> 表示 95% 區間不含 0（只用在 b、β、ρ 這類「等於 0」有意義的參數，其他是 <span class="in">`NA`</span>）。</span>
 <span id="cb82-652"><a href="#cb82-652" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>前 3 題 ρ 的 R̂ 都接近 1，ESS 都超過 1300。</span>
 <span id="cb82-653"><a href="#cb82-653" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`convergence()`</span>：</span>
 <span id="cb82-654"><a href="#cb82-654" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>第一行：51 個參數裡，98.0%（51 個中的 50 個）的 ESS &gt; 400 而且 R̂ &lt; 1.05；</span>
@@ -6556,7 +6558,7 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <span id="cb82-800"><a href="#cb82-800" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>估計值約 −0.39，標準誤 0.04。真值是 −0.3。</span>
 <span id="cb82-801"><a href="#cb82-801" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>差了約 2 個標準誤。這是這一份樣本的抽樣誤差：同樣的設定重複模擬很多次，平均會接近 −0.3（重複模擬的做法見第 10 節）。</span>
 <span id="cb82-802"><a href="#cb82-802" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`var_speed`</span>：速度的殘差變異數，約 0.31（模擬時的真值是 0.3）。</span>
-<span id="cb82-803"><a href="#cb82-803" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`sig`</span> 欄有 <span class="in">`*`</span> 的，95% 區間不含 0。只有 <span class="in">`beta_ability[x1]`</span> 的區間含 0。</span>
+<span id="cb82-803"><a href="#cb82-803" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`sig`</span> 欄有 <span class="in">`*`</span> 的，95% 區間不含 0。只有 <span class="in">`beta_ability[x1]`</span> 的區間含 0。<span class="in">`var_speed`</span> 一定是正的，所以 <span class="in">`sig`</span> 是 <span class="in">`NA`</span>。</span>
 <span id="cb82-804"><a href="#cb82-804" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb82-805"><a href="#cb82-805" aria-hidden="true" tabindex="-1"></a>**概似比檢定：共變項有沒有用**</span>
 <span id="cb82-806"><a href="#cb82-806" aria-hidden="true" tabindex="-1"></a></span>
@@ -6924,150 +6926,143 @@ rho[item10] -0.079   -0.102  0.017 -0.114 -0.080</code></pre>
 <span id="cb82-1168"><a href="#cb82-1168" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
 <span id="cb82-1169"><a href="#cb82-1169" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 用 <span class="in">`ecm()`</span> 還是 <span class="in">`gibbs()`</span> <span class="pp">|</span> 先用 <span class="in">`ecm()`</span>。需要後驗區間、分位數模型或 <span class="in">`person_fit()`</span> 時，再用 <span class="in">`gibbs(dat, model = ..., init = fit)`</span>（第 5 節的表） <span class="pp">|</span></span>
 <span id="cb82-1170"><a href="#cb82-1170" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`ecm()`</span> 的 <span class="in">`converged`</span> 是 <span class="in">`FALSE`</span> <span class="pp">|</span> 把 <span class="in">`max_iter`</span> 加大：<span class="in">`control = ecm_control(max_iter = 5000)`</span>。仍然不收斂，常是樣本太小或參數接近邊界：試 <span class="in">`prior = &quot;map&quot;`</span> <span class="pp">|</span></span>
-<span id="cb82-1171"><a href="#cb82-1171" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 標準誤是 NA 或很大 <span class="pp">|</span> 參數接近邊界（例如變異數接近 0）。用 <span class="in">`prior = &quot;map&quot;`</span> 或 <span class="in">`gibbs()`</span> <span class="pp">|</span></span>
-<span id="cb82-1172"><a href="#cb82-1172" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> R̂ 大於 1.05 <span class="pp">|</span> 把 <span class="in">`n_iter`</span> 加大。2PL 模型可以加 <span class="in">`gibbs(..., control = gibbs_control(collapse = TRUE))`</span>：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大 <span class="pp">|</span></span>
-<span id="cb82-1173"><a href="#cb82-1173" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 有缺失值 <span class="pp">|</span> 現成的模型需要完整資料；要處理缺失，用第二份教學的積木 <span class="pp">|</span></span>
-<span id="cb82-1174"><a href="#cb82-1174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 共變項要不要置中 <span class="pp">|</span> 要（第 3 節） <span class="pp">|</span></span>
-<span id="cb82-1175"><a href="#cb82-1175" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 時間單位 <span class="pp">|</span> 秒數用 <span class="in">`time =`</span>；已經取 log 用 <span class="in">`log_time =`</span> <span class="pp">|</span></span>
-<span id="cb82-1176"><a href="#cb82-1176" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 分位數的結果怎麼報告 <span class="pp">|</span> 和平均數模型一起報告；極端分位數的 ρ 會偏大（第 8 節） <span class="pp">|</span></span>
-<span id="cb82-1177"><a href="#cb82-1177" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 舊程式用 <span class="in">`rtirt_cross(dat)`</span> 這類函數 <span class="pp">|</span> 還能用，但會警告。改成 <span class="in">`ecm(dat, model = &quot;cross&quot;)`</span>、<span class="in">`gibbs(dat, model = &quot;cross&quot;)`</span>；<span class="in">`gibbs(fit, init = &quot;ecm&quot;)`</span> 改成 <span class="in">`gibbs(dat, model = &quot;cross&quot;, init = fit)`</span>；<span class="in">`nodes`</span>、<span class="in">`max_iter`</span> 等改放進 <span class="in">`ecm_control()`</span>，<span class="in">`n_burnin`</span>、<span class="in">`collapse`</span>、<span class="in">`verbose`</span>、<span class="in">`fit_indices`</span> 改放進 <span class="in">`gibbs_control()`</span> <span class="pp">|</span></span>
-<span id="cb82-1178"><a href="#cb82-1178" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 舊程式用 <span class="in">`em()`</span>、<span class="in">`check_em()`</span> <span class="pp">|</span> 改名了：<span class="in">`ecm()`</span>、<span class="in">`check_ecm()`</span>。<span class="in">`map = TRUE`</span> 改成 <span class="in">`prior = &quot;map&quot;`</span>，<span class="in">`Q =`</span> 改成 <span class="in">`ecm_control(nodes = )`</span>，<span class="in">`fit$em`</span> 改成 <span class="in">`fit$ecm`</span> <span class="pp">|</span></span>
-<span id="cb82-1179"><a href="#cb82-1179" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 估計前想看模型的式子 <span class="pp">|</span> <span class="in">`equations(dat, model = &quot;cross&quot;)`</span>；演算法的步驟：<span class="in">`algorithm(dat, model = &quot;cross&quot;)`</span> <span class="pp">|</span></span>
-<span id="cb82-1180"><a href="#cb82-1180" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 想看抽樣器每一步在算什麼 <span class="pp">|</span> <span class="in">`algorithm(fit)`</span>，見第二份教學 <span class="pp">|</span></span>
-<span id="cb82-1181"><a href="#cb82-1181" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1182"><a href="#cb82-1182" aria-hidden="true" tabindex="-1"></a><span class="fu">## 附錄 A：從 Julia 版搬過來</span></span>
-<span id="cb82-1183"><a href="#cb82-1183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1184"><a href="#cb82-1184" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>從 Julia 搬過來的程式可以照原名執行（下表）。</span>
-<span id="cb82-1185"><a href="#cb82-1185" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>要重現博士論文的結果，用 <span class="in">`priors = rtirt_priors_julia()`</span>，它是 Julia 原版的先驗。</span>
-<span id="cb82-1186"><a href="#cb82-1186" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Julia 的 <span class="in">`cov2one = true`</span> 就是 <span class="in">`speed_var = &quot;fixed&quot;`</span>。只有 Julia 風格的 <span class="in">`sampleGibbs()`</span> 收 <span class="in">`cov2one`</span>；<span class="in">`gibbs()`</span> 不收。</span>
-<span id="cb82-1187"><a href="#cb82-1187" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Julia 版沒有 ECM。<span class="in">`ecm()`</span> 是 birtRcpp 新增的。</span>
-<span id="cb82-1188"><a href="#cb82-1188" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>與 Julia 原版的差異（修正的錯誤）列在 README。</span>
-<span id="cb82-1189"><a href="#cb82-1189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1190"><a href="#cb82-1190" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Julia <span class="pp">|</span> birtRcpp <span class="pp">|</span></span>
-<span id="cb82-1191"><a href="#cb82-1191" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
-<span id="cb82-1192"><a href="#cb82-1192" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`setCond(nSubj=…, qRt=…)`</span> <span class="pp">|</span> <span class="in">`set_cond(...)`</span>（只有模擬需要） <span class="pp">|</span></span>
-<span id="cb82-1193"><a href="#cb82-1193" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`InputData(Y=, T=, X=)`</span> <span class="pp">|</span> <span class="in">`input_data(resp = , time = , cov = , id = , data = )`</span> <span class="pp">|</span></span>
-<span id="cb82-1194"><a href="#cb82-1194" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`GibbsRtIrtCrossQr(Cond, Data)`</span> 與 <span class="in">`sample!(MCMC)`</span> <span class="pp">|</span> <span class="in">`gibbs(dat, model = &quot;cross&quot;, quantile = q, n_iter = , n_chain = , seed = )`</span> <span class="pp">|</span></span>
-<span id="cb82-1195"><a href="#cb82-1195" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`coef(MCMC)`</span>、<span class="in">`precis(MCMC)`</span> <span class="pp">|</span> <span class="in">`summary(fit)`</span>、<span class="in">`estimates(fit)`</span> <span class="pp">|</span></span>
-<span id="cb82-1196"><a href="#cb82-1196" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`getDic`</span>、<span class="in">`checkConvergence`</span>、<span class="in">`comparePara`</span> <span class="pp">|</span> <span class="in">`fit_indices()`</span>、<span class="in">`convergence()`</span>、<span class="in">`compare_para()`</span> <span class="pp">|</span></span>
-<span id="cb82-1197"><a href="#cb82-1197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1198"><a href="#cb82-1198" aria-hidden="true" tabindex="-1"></a><span class="fu">## 附錄 B：怎麼確定結果是對的（進階）</span></span>
-<span id="cb82-1199"><a href="#cb82-1199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1200"><a href="#cb82-1200" aria-hidden="true" tabindex="-1"></a><span class="fu">### 檢查 Gibbs 抽樣器：`check_sampler()`</span></span>
-<span id="cb82-1201"><a href="#cb82-1201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1202"><a href="#cb82-1202" aria-hidden="true" tabindex="-1"></a>一個 Gibbs 抽樣器正確，代表它抽到的是對的後驗。Geweke（2004）的檢查法是這樣：</span>
-<span id="cb82-1203"><a href="#cb82-1203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1204"><a href="#cb82-1204" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>從先驗抽一組參數。</span>
-<span id="cb82-1205"><a href="#cb82-1205" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>用這組參數，從模型抽一份假資料。</span>
-<span id="cb82-1206"><a href="#cb82-1206" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>用抽樣器，根據這份假資料更新參數。</span>
-<span id="cb82-1207"><a href="#cb82-1207" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>回到第 2 步，很多次。</span>
-<span id="cb82-1208"><a href="#cb82-1208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1209"><a href="#cb82-1209" aria-hidden="true" tabindex="-1"></a>如果抽樣器是對的，這樣輪流很多次之後，參數的分配應該還是先驗。如果不是，抽樣器就有錯。</span>
-<span id="cb82-1210"><a href="#cb82-1210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1211"><a href="#cb82-1211" aria-hidden="true" tabindex="-1"></a><span class="in">```{r check-sampler}</span></span>
-<span id="cb82-1212"><a href="#cb82-1212" aria-hidden="true" tabindex="-1"></a>condC <span class="ot">&lt;-</span> <span class="fu">set_cond</span>(<span class="at">n_subj =</span> <span class="dv">20</span>, <span class="at">n_item =</span> <span class="dv">3</span>)</span>
-<span id="cb82-1213"><a href="#cb82-1213" aria-hidden="true" tabindex="-1"></a>dC <span class="ot">&lt;-</span> <span class="fu">sim_data</span>(condC, <span class="fu">sim_para</span>(condC, <span class="st">&quot;null&quot;</span>), <span class="st">&quot;null&quot;</span>)</span>
-<span id="cb82-1214"><a href="#cb82-1214" aria-hidden="true" tabindex="-1"></a>fC <span class="ot">&lt;-</span> <span class="fu">ecm</span>(dC, <span class="at">model =</span> <span class="st">&quot;null&quot;</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb82-1215"><a href="#cb82-1215" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">check_sampler</span>(fC, <span class="at">seed =</span> <span class="dv">1</span>))</span>
-<span id="cb82-1216"><a href="#cb82-1216" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb82-1217"><a href="#cb82-1217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1218"><a href="#cb82-1218" aria-hidden="true" tabindex="-1"></a>**逐行說明**</span>
-<span id="cb82-1219"><a href="#cb82-1219" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1220"><a href="#cb82-1220" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>很小的設定：20 人、3 題。檢查只需要小資料，跑得快。</span>
-<span id="cb82-1221"><a href="#cb82-1221" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>模擬一份資料。只用來告訴函數資料的大小。</span>
-<span id="cb82-1222"><a href="#cb82-1222" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>用 ECM 配適 <span class="in">`&quot;null&quot;`</span> 模型。這一步只是為了告訴 <span class="in">`check_sampler()`</span> 要檢查哪個模型，估計值不會被用到。</span>
-<span id="cb82-1223"><a href="#cb82-1223" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span><span class="in">`check_sampler()`</span>：對 <span class="in">`&quot;null&quot;`</span> 模型的抽樣器做 Geweke 檢查。<span class="in">`print()`</span> 只印摘要與差距最大的 10 列。</span>
-<span id="cb82-1224"><a href="#cb82-1224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1225"><a href="#cb82-1225" aria-hidden="true" tabindex="-1"></a>**輸出怎麼讀**</span>
-<span id="cb82-1226"><a href="#cb82-1226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1227"><a href="#cb82-1227" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 1 行：檢查的名稱，Geweke（2004）的聯合分配檢定。</span>
-<span id="cb82-1228"><a href="#cb82-1228" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 2 行：模型與大小。<span class="in">`collapse = FALSE`</span> 是說檢查的是預設的抽樣方法（第 12 節提到的 <span class="in">`collapse = TRUE`</span> 是另一種）。</span>
-<span id="cb82-1229"><a href="#cb82-1229" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 3 行：鏈的長度是 200000 次，前 10% 丟掉（等於 burn-in）。比較的方式是：</span>
-<span id="cb82-1230"><a href="#cb82-1230" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>另外從先驗直接抽 100000 次，當作標準答案；</span>
-<span id="cb82-1231"><a href="#cb82-1231" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>在先驗的幾個分位數（10%、25%、50%、75%、90%）上，比較「鏈裡有多少比例低於它」和「先驗有多少比例低於它」。</span>
-<span id="cb82-1232"><a href="#cb82-1232" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 4 行：一共比較 70 次。Holm 校正後最小的 p 值是 0.278，離顯著很遠。結論是 <span class="in">`no evidence against the sampler`</span>：沒有證據顯示抽樣器有錯。</span>
-<span id="cb82-1233"><a href="#cb82-1233" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>表格：差距最大的 10 個比較，一列一個。</span>
-<span id="cb82-1234"><a href="#cb82-1234" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`parameter`</span>：哪一個參數；</span>
-<span id="cb82-1235"><a href="#cb82-1235" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`prob`</span>：比較的是先驗的哪一個分位數，例如 0.10 是第 10 百分位數；</span>
-<span id="cb82-1236"><a href="#cb82-1236" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`prior`</span>：先驗抽樣裡低於這個分位數的比例，照定義會等於 <span class="in">`prob`</span>；</span>
-<span id="cb82-1237"><a href="#cb82-1237" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`sampler`</span>：鏈裡低於這個分位數的比例，應該和 <span class="in">`prior`</span> 很接近；</span>
-<span id="cb82-1238"><a href="#cb82-1238" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`ess`</span>：鏈的有效樣本數；</span>
-<span id="cb82-1239"><a href="#cb82-1239" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`z`</span>、<span class="in">`p.value`</span>、<span class="in">`p.holm`</span>：<span class="in">`sampler`</span> 和 <span class="in">`prior`</span> 差距的檢定。</span>
-<span id="cb82-1240"><a href="#cb82-1240" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>例如第一列：<span class="in">`sigma2t[item02]`</span> 在鏈裡有 12.3% 低於先驗的第 10 百分位數。未校正的 p 是 .004，但校正後是 .278，不算差距。</span>
-<span id="cb82-1241"><a href="#cb82-1241" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>最後的 <span class="in">`Note`</span>：最小的 ESS 是 339，低於 400。這時 z 檢定不太可靠，正式檢查時把 <span class="in">`n_iter`</span> 加大。</span>
-<span id="cb82-1242"><a href="#cb82-1242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1243"><a href="#cb82-1243" aria-hidden="true" tabindex="-1"></a><span class="fu">### 檢查 ECM：`check_ecm()`</span></span>
-<span id="cb82-1244"><a href="#cb82-1244" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1245"><a href="#cb82-1245" aria-hidden="true" tabindex="-1"></a>先認識一個詞：**Q 函數**。E 步算出來的東西，是一個「替代的目標函數」，記作 Q。M 步（或 CM 步）做的事，就是讓 Q 變大。</span>
-<span id="cb82-1246"><a href="#cb82-1246" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1247"><a href="#cb82-1247" aria-hidden="true" tabindex="-1"></a>一個 EM 類的演算法正確，要滿足三件事：</span>
-<span id="cb82-1248"><a href="#cb82-1248" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1249"><a href="#cb82-1249" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>每一步都不會讓目標函數（概似或 MAP 的目標）變小；</span>
-<span id="cb82-1250"><a href="#cb82-1250" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>E 步和目標函數一致：在目前的參數上，Q 的梯度（斜率）等於目標函數的梯度。這叫 Fisher 恆等式；</span>
-<span id="cb82-1251"><a href="#cb82-1251" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>停下來的地方是最大值：換一個一般的最佳化方法，也找不到更好的點。</span>
-<span id="cb82-1252"><a href="#cb82-1252" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1253"><a href="#cb82-1253" aria-hidden="true" tabindex="-1"></a><span class="in">`check_ecm()`</span> 從很多個起點檢查這三件事。它檢查的是用積木（<span class="in">`block_model()`</span>）組出來的模型，所以下面用積木寫一個 2PL。積木的寫法見第二份教學，這裡只看結果。<span class="in">`block_model()`</span> 已不建議使用（不再加新功能），這裡只用它示範這個檢查。</span>
-<span id="cb82-1254"><a href="#cb82-1254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1255"><a href="#cb82-1255" aria-hidden="true" tabindex="-1"></a><span class="in">```{r check-ecm}</span></span>
-<span id="cb82-1256"><a href="#cb82-1256" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb82-1257"><a href="#cb82-1257" aria-hidden="true" tabindex="-1"></a>th <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">200</span>)</span>
-<span id="cb82-1258"><a href="#cb82-1258" aria-hidden="true" tabindex="-1"></a>Yc <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rbinom</span>(<span class="dv">200</span> <span class="sc">*</span> <span class="dv">5</span>, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="fu">outer</span>(th, <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">5</span>), <span class="st">&quot;-&quot;</span>))), <span class="dv">200</span>)</span>
-<span id="cb82-1259"><a href="#cb82-1259" aria-hidden="true" tabindex="-1"></a>m2pl <span class="ot">&lt;-</span> <span class="fu">block_model</span>(<span class="at">Y =</span> Yc,</span>
-<span id="cb82-1260"><a href="#cb82-1260" aria-hidden="true" tabindex="-1"></a>  theta[person] <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb82-1261"><a href="#cb82-1261" aria-hidden="true" tabindex="-1"></a>  a[item] <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="at">lower =</span> <span class="dv">0</span>),</span>
-<span id="cb82-1262"><a href="#cb82-1262" aria-hidden="true" tabindex="-1"></a>  b[item] <span class="sc">~</span> <span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>),</span>
-<span id="cb82-1263"><a href="#cb82-1263" aria-hidden="true" tabindex="-1"></a>  Y <span class="sc">~</span> <span class="fu">bernoulli_logit</span>(a <span class="sc">*</span> (theta <span class="sc">-</span> b)))</span>
-<span id="cb82-1264"><a href="#cb82-1264" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">check_ecm</span>(m2pl, <span class="at">seed =</span> <span class="dv">1</span>))</span>
-<span id="cb82-1265"><a href="#cb82-1265" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb82-1171"><a href="#cb82-1171" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 標準誤是 NA 或很大 <span class="pp">|</span> 參數接近邊界（例如變異數接近 0），或樣本太小。<span class="in">`print(fit)`</span> 遇到 <span class="sc">\|</span>b<span class="sc">\|</span> &gt; 6、a &lt; 0.1 或 &gt; 10、標準誤 &gt; 5 時會多一行 <span class="in">`Warning: extreme estimates ...`</span>。用 <span class="in">`prior = &quot;map&quot;`</span> 或 <span class="in">`gibbs()`</span> <span class="pp">|</span></span>
+<span id="cb82-1172"><a href="#cb82-1172" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 參數名稱打錯，或把 <span class="in">`nodes`</span>、<span class="in">`n_burnin`</span> 直接寫進 <span class="in">`ecm()`</span>／<span class="in">`gibbs()`</span> <span class="pp">|</span> 會立刻報錯，不會先跑完：設定放進 <span class="in">`control = ecm_control(nodes = 61)`</span> 或 <span class="in">`control = gibbs_control(n_burnin = 500)`</span>；打錯的名字（例如 <span class="in">`niter`</span>）訊息會提示正確的（<span class="in">`n_iter`</span>） <span class="pp">|</span></span>
+<span id="cb82-1173"><a href="#cb82-1173" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> R̂ 大於 1.05，或 ESS 小於 400（<span class="in">`print(g)`</span> 的 <span class="in">`Warning`</span>） <span class="pp">|</span> 把 <span class="in">`n_iter`</span> 加大。2PL 模型可以加 <span class="in">`gibbs(..., control = gibbs_control(collapse = TRUE))`</span>：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大 <span class="pp">|</span></span>
+<span id="cb82-1174"><a href="#cb82-1174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 有缺失值 <span class="pp">|</span> 目前支援中的模型需要完整資料：用 <span class="in">`complete.cases()`</span> 刪掉有缺失的人（第 3 節）。舊的積木（<span class="in">`block_model()`</span>）能宣告有缺失的資料，但已不建議使用、不再加新功能 <span class="pp">|</span></span>
+<span id="cb82-1175"><a href="#cb82-1175" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 資料是一列一個「人 × 題」（長格式，例如 PsychoPy、E-Prime 匯出的） <span class="pp">|</span> <span class="in">`input_data()`</span> 會報錯並提示怎麼轉成寬格式（一列一人、一欄一題），例如 <span class="in">`tidyr::pivot_wider(long, id_cols = id, names_from = item, values_from = c(correct, rt))`</span> <span class="pp">|</span></span>
+<span id="cb82-1176"><a href="#cb82-1176" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 共變項是類別（性別、組別） <span class="pp">|</span> 先做虛擬編碼再置中：k 個類別要 k − 1 個欄位，例如 <span class="in">`model.matrix(~ grade, raw)[, -1]`</span>；兩類的可以寫 <span class="in">`raw$female &lt;- as.numeric(raw$gender == &quot;F&quot;)`</span> <span class="pp">|</span></span>
+<span id="cb82-1177"><a href="#cb82-1177" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 共變項要不要置中 <span class="pp">|</span> 要（第 3 節） <span class="pp">|</span></span>
+<span id="cb82-1178"><a href="#cb82-1178" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 時間單位 <span class="pp">|</span> 秒數用 <span class="in">`time =`</span>；已經取 log 用 <span class="in">`log_time =`</span> <span class="pp">|</span></span>
+<span id="cb82-1179"><a href="#cb82-1179" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 分位數的結果怎麼報告 <span class="pp">|</span> 和平均數模型一起報告；極端分位數的 ρ 會偏大（第 8 節） <span class="pp">|</span></span>
+<span id="cb82-1180"><a href="#cb82-1180" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 舊程式用 <span class="in">`rtirt_cross(dat)`</span> 這類函數 <span class="pp">|</span> 還能用，但會警告。改成 <span class="in">`ecm(dat, model = &quot;cross&quot;)`</span>、<span class="in">`gibbs(dat, model = &quot;cross&quot;)`</span>；<span class="in">`gibbs(fit, init = &quot;ecm&quot;)`</span> 改成 <span class="in">`gibbs(dat, model = &quot;cross&quot;, init = fit)`</span>；<span class="in">`nodes`</span>、<span class="in">`max_iter`</span> 等改放進 <span class="in">`ecm_control()`</span>，<span class="in">`n_burnin`</span>、<span class="in">`collapse`</span>、<span class="in">`verbose`</span>、<span class="in">`fit_indices`</span> 改放進 <span class="in">`gibbs_control()`</span> <span class="pp">|</span></span>
+<span id="cb82-1181"><a href="#cb82-1181" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 舊程式用 <span class="in">`em()`</span>、<span class="in">`check_em()`</span> <span class="pp">|</span> 改名了：<span class="in">`ecm()`</span>、<span class="in">`check_ecm()`</span>。<span class="in">`map = TRUE`</span> 改成 <span class="in">`prior = &quot;map&quot;`</span>，<span class="in">`Q =`</span> 改成 <span class="in">`ecm_control(nodes = )`</span>，<span class="in">`fit$em`</span> 改成 <span class="in">`fit$ecm`</span> <span class="pp">|</span></span>
+<span id="cb82-1182"><a href="#cb82-1182" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 估計前想看模型的式子 <span class="pp">|</span> <span class="in">`equations(dat, model = &quot;cross&quot;)`</span>；演算法的步驟：<span class="in">`algorithm(dat, model = &quot;cross&quot;)`</span> <span class="pp">|</span></span>
+<span id="cb82-1183"><a href="#cb82-1183" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 想看抽樣器每一步在算什麼 <span class="pp">|</span> <span class="in">`algorithm(fit)`</span>，見第二份教學 <span class="pp">|</span></span>
+<span id="cb82-1184"><a href="#cb82-1184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1185"><a href="#cb82-1185" aria-hidden="true" tabindex="-1"></a><span class="fu">## 附錄 A：從 Julia 版搬過來</span></span>
+<span id="cb82-1186"><a href="#cb82-1186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1187"><a href="#cb82-1187" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>從 Julia 搬過來的程式可以照原名執行（下表）。</span>
+<span id="cb82-1188"><a href="#cb82-1188" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>要重現博士論文的結果，用 <span class="in">`priors = rtirt_priors_julia()`</span>，它是 Julia 原版的先驗。</span>
+<span id="cb82-1189"><a href="#cb82-1189" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Julia 的 <span class="in">`cov2one = true`</span> 就是 <span class="in">`speed_var = &quot;fixed&quot;`</span>。只有 Julia 風格的 <span class="in">`sampleGibbs()`</span> 收 <span class="in">`cov2one`</span>；<span class="in">`gibbs()`</span> 不收。</span>
+<span id="cb82-1190"><a href="#cb82-1190" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Julia 版沒有 ECM。<span class="in">`ecm()`</span> 是 birtRcpp 新增的。</span>
+<span id="cb82-1191"><a href="#cb82-1191" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>與 Julia 原版的差異（修正的錯誤）列在 README。</span>
+<span id="cb82-1192"><a href="#cb82-1192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1193"><a href="#cb82-1193" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Julia <span class="pp">|</span> birtRcpp <span class="pp">|</span></span>
+<span id="cb82-1194"><a href="#cb82-1194" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
+<span id="cb82-1195"><a href="#cb82-1195" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`setCond(nSubj=…, qRt=…)`</span> <span class="pp">|</span> <span class="in">`set_cond(...)`</span>（只有模擬需要） <span class="pp">|</span></span>
+<span id="cb82-1196"><a href="#cb82-1196" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`InputData(Y=, T=, X=)`</span> <span class="pp">|</span> <span class="in">`input_data(resp = , time = , cov = , id = , data = )`</span> <span class="pp">|</span></span>
+<span id="cb82-1197"><a href="#cb82-1197" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`GibbsRtIrtCrossQr(Cond, Data)`</span> 與 <span class="in">`sample!(MCMC)`</span> <span class="pp">|</span> <span class="in">`gibbs(dat, model = &quot;cross&quot;, quantile = q, n_iter = , n_chain = , seed = )`</span> <span class="pp">|</span></span>
+<span id="cb82-1198"><a href="#cb82-1198" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`coef(MCMC)`</span>、<span class="in">`precis(MCMC)`</span> <span class="pp">|</span> <span class="in">`summary(fit)`</span>、<span class="in">`estimates(fit)`</span> <span class="pp">|</span></span>
+<span id="cb82-1199"><a href="#cb82-1199" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`getDic`</span>、<span class="in">`checkConvergence`</span>、<span class="in">`comparePara`</span> <span class="pp">|</span> <span class="in">`fit_indices()`</span>、<span class="in">`convergence()`</span>、<span class="in">`compare_para()`</span> <span class="pp">|</span></span>
+<span id="cb82-1200"><a href="#cb82-1200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1201"><a href="#cb82-1201" aria-hidden="true" tabindex="-1"></a><span class="fu">## 附錄 B：怎麼確定結果是對的（進階）</span></span>
+<span id="cb82-1202"><a href="#cb82-1202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1203"><a href="#cb82-1203" aria-hidden="true" tabindex="-1"></a><span class="fu">### 檢查 Gibbs 抽樣器：`check_sampler()`</span></span>
+<span id="cb82-1204"><a href="#cb82-1204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1205"><a href="#cb82-1205" aria-hidden="true" tabindex="-1"></a>一個 Gibbs 抽樣器正確，代表它抽到的是對的後驗。Geweke（2004）的檢查法是這樣：</span>
+<span id="cb82-1206"><a href="#cb82-1206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1207"><a href="#cb82-1207" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>從先驗抽一組參數。</span>
+<span id="cb82-1208"><a href="#cb82-1208" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>用這組參數，從模型抽一份假資料。</span>
+<span id="cb82-1209"><a href="#cb82-1209" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>用抽樣器，根據這份假資料更新參數。</span>
+<span id="cb82-1210"><a href="#cb82-1210" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>回到第 2 步，很多次。</span>
+<span id="cb82-1211"><a href="#cb82-1211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1212"><a href="#cb82-1212" aria-hidden="true" tabindex="-1"></a>如果抽樣器是對的，這樣輪流很多次之後，參數的分配應該還是先驗。如果不是，抽樣器就有錯。</span>
+<span id="cb82-1213"><a href="#cb82-1213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1214"><a href="#cb82-1214" aria-hidden="true" tabindex="-1"></a><span class="in">```{r check-sampler}</span></span>
+<span id="cb82-1215"><a href="#cb82-1215" aria-hidden="true" tabindex="-1"></a>condC <span class="ot">&lt;-</span> <span class="fu">set_cond</span>(<span class="at">n_subj =</span> <span class="dv">20</span>, <span class="at">n_item =</span> <span class="dv">3</span>)</span>
+<span id="cb82-1216"><a href="#cb82-1216" aria-hidden="true" tabindex="-1"></a>dC <span class="ot">&lt;-</span> <span class="fu">sim_data</span>(condC, <span class="fu">sim_para</span>(condC, <span class="st">&quot;null&quot;</span>), <span class="st">&quot;null&quot;</span>)</span>
+<span id="cb82-1217"><a href="#cb82-1217" aria-hidden="true" tabindex="-1"></a>fC <span class="ot">&lt;-</span> <span class="fu">ecm</span>(dC, <span class="at">model =</span> <span class="st">&quot;null&quot;</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb82-1218"><a href="#cb82-1218" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">check_sampler</span>(fC, <span class="at">seed =</span> <span class="dv">1</span>))</span>
+<span id="cb82-1219"><a href="#cb82-1219" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb82-1220"><a href="#cb82-1220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1221"><a href="#cb82-1221" aria-hidden="true" tabindex="-1"></a>**逐行說明**</span>
+<span id="cb82-1222"><a href="#cb82-1222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1223"><a href="#cb82-1223" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>很小的設定：20 人、3 題。檢查只需要小資料，跑得快。</span>
+<span id="cb82-1224"><a href="#cb82-1224" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>模擬一份資料。只用來告訴函數資料的大小。</span>
+<span id="cb82-1225"><a href="#cb82-1225" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>用 ECM 配適 <span class="in">`&quot;null&quot;`</span> 模型。這一步只是為了告訴 <span class="in">`check_sampler()`</span> 要檢查哪個模型，估計值不會被用到。</span>
+<span id="cb82-1226"><a href="#cb82-1226" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span><span class="in">`check_sampler()`</span>：對 <span class="in">`&quot;null&quot;`</span> 模型的抽樣器做 Geweke 檢查。<span class="in">`print()`</span> 只印摘要與差距最大的 10 列。</span>
+<span id="cb82-1227"><a href="#cb82-1227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1228"><a href="#cb82-1228" aria-hidden="true" tabindex="-1"></a>**輸出怎麼讀**</span>
+<span id="cb82-1229"><a href="#cb82-1229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1230"><a href="#cb82-1230" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 1 行：檢查的名稱，Geweke（2004）的聯合分配檢定。</span>
+<span id="cb82-1231"><a href="#cb82-1231" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 2 行：模型與大小。<span class="in">`collapse = FALSE`</span> 是說檢查的是預設的抽樣方法（第 12 節提到的 <span class="in">`collapse = TRUE`</span> 是另一種）。</span>
+<span id="cb82-1232"><a href="#cb82-1232" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 3 行：鏈的長度是 200000 次，前 10% 丟掉（等於 burn-in）。比較的方式是：</span>
+<span id="cb82-1233"><a href="#cb82-1233" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>另外從先驗直接抽 100000 次，當作標準答案；</span>
+<span id="cb82-1234"><a href="#cb82-1234" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>在先驗的幾個分位數（10%、25%、50%、75%、90%）上，比較「鏈裡有多少比例低於它」和「先驗有多少比例低於它」。</span>
+<span id="cb82-1235"><a href="#cb82-1235" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第 4 行：一共比較 70 次。Holm 校正後最小的 p 值是 0.278，離顯著很遠。結論是 <span class="in">`no evidence against the sampler`</span>：沒有證據顯示抽樣器有錯。</span>
+<span id="cb82-1236"><a href="#cb82-1236" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>表格：差距最大的 10 個比較，一列一個。</span>
+<span id="cb82-1237"><a href="#cb82-1237" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`parameter`</span>：哪一個參數；</span>
+<span id="cb82-1238"><a href="#cb82-1238" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`prob`</span>：比較的是先驗的哪一個分位數，例如 0.10 是第 10 百分位數；</span>
+<span id="cb82-1239"><a href="#cb82-1239" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`prior`</span>：先驗抽樣裡低於這個分位數的比例，照定義會等於 <span class="in">`prob`</span>；</span>
+<span id="cb82-1240"><a href="#cb82-1240" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`sampler`</span>：鏈裡低於這個分位數的比例，應該和 <span class="in">`prior`</span> 很接近；</span>
+<span id="cb82-1241"><a href="#cb82-1241" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`ess`</span>：鏈的有效樣本數；</span>
+<span id="cb82-1242"><a href="#cb82-1242" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`z`</span>、<span class="in">`p.value`</span>、<span class="in">`p.holm`</span>：<span class="in">`sampler`</span> 和 <span class="in">`prior`</span> 差距的檢定。</span>
+<span id="cb82-1243"><a href="#cb82-1243" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>例如第一列：<span class="in">`sigma2t[item02]`</span> 在鏈裡有 12.3% 低於先驗的第 10 百分位數。未校正的 p 是 .004，但校正後是 .278，不算差距。</span>
+<span id="cb82-1244"><a href="#cb82-1244" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>最後的 <span class="in">`Note`</span>：最小的 ESS 是 339，低於 400。這時 z 檢定不太可靠，正式檢查時把 <span class="in">`n_iter`</span> 加大。</span>
+<span id="cb82-1245"><a href="#cb82-1245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1246"><a href="#cb82-1246" aria-hidden="true" tabindex="-1"></a><span class="fu">### 檢查 ECM：`check_ecm()`</span></span>
+<span id="cb82-1247"><a href="#cb82-1247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1248"><a href="#cb82-1248" aria-hidden="true" tabindex="-1"></a>先認識一個詞：**Q 函數**。E 步算出來的東西，是一個「替代的目標函數」，記作 Q。M 步（或 CM 步）做的事，就是讓 Q 變大。</span>
+<span id="cb82-1249"><a href="#cb82-1249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1250"><a href="#cb82-1250" aria-hidden="true" tabindex="-1"></a>一個 EM 類的演算法正確，要滿足三件事：</span>
+<span id="cb82-1251"><a href="#cb82-1251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1252"><a href="#cb82-1252" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>每一步都不會讓目標函數（概似或 MAP 的目標）變小；</span>
+<span id="cb82-1253"><a href="#cb82-1253" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>E 步和目標函數一致：在目前的參數上，Q 的梯度（斜率）等於目標函數的梯度。這叫 Fisher 恆等式；</span>
+<span id="cb82-1254"><a href="#cb82-1254" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>停下來的地方是最大值：換一個一般的最佳化方法，也找不到更好的點。</span>
+<span id="cb82-1255"><a href="#cb82-1255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1256"><a href="#cb82-1256" aria-hidden="true" tabindex="-1"></a><span class="in">`check_ecm()`</span> 從很多個起點檢查這三件事。把 <span class="in">`ecm()`</span> 的結果直接交給它就好：它檢查的是 <span class="in">`ecm()`</span> 這個模型用的 E 步與 M 步。</span>
+<span id="cb82-1257"><a href="#cb82-1257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1258"><a href="#cb82-1258" aria-hidden="true" tabindex="-1"></a><span class="in">```{r check-ecm}</span></span>
+<span id="cb82-1259"><a href="#cb82-1259" aria-hidden="true" tabindex="-1"></a>condE <span class="ot">&lt;-</span> <span class="fu">set_cond</span>(<span class="at">n_subj =</span> <span class="dv">200</span>, <span class="at">n_item =</span> <span class="dv">5</span>)</span>
+<span id="cb82-1260"><a href="#cb82-1260" aria-hidden="true" tabindex="-1"></a>dE <span class="ot">&lt;-</span> <span class="fu">sim_data</span>(condE, <span class="fu">sim_para</span>(condE, <span class="st">&quot;cross&quot;</span>), <span class="st">&quot;cross&quot;</span>)</span>
+<span id="cb82-1261"><a href="#cb82-1261" aria-hidden="true" tabindex="-1"></a>fE <span class="ot">&lt;-</span> <span class="fu">ecm</span>(dE, <span class="at">model =</span> <span class="st">&quot;cross&quot;</span>, <span class="at">se =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb82-1262"><a href="#cb82-1262" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">check_ecm</span>(fE, <span class="at">prior =</span> <span class="st">&quot;ml&quot;</span>, <span class="at">seed =</span> <span class="dv">1</span>))</span>
+<span id="cb82-1263"><a href="#cb82-1263" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb82-1264"><a href="#cb82-1264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1265"><a href="#cb82-1265" aria-hidden="true" tabindex="-1"></a>**逐行說明**</span>
 <span id="cb82-1266"><a href="#cb82-1266" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1267"><a href="#cb82-1267" aria-hidden="true" tabindex="-1"></a>**逐行說明**</span>
-<span id="cb82-1268"><a href="#cb82-1268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1269"><a href="#cb82-1269" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>固定亂數。</span>
-<span id="cb82-1270"><a href="#cb82-1270" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>200 人的真實能力。</span>
-<span id="cb82-1271"><a href="#cb82-1271" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>模擬 200 人 × 5 題的 0/1 作答：</span>
-<span id="cb82-1272"><a href="#cb82-1272" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span><span class="in">`seq(-1, 1, length.out = 5)`</span>：5 題的難度，從 −1 到 1 等距；</span>
-<span id="cb82-1273"><a href="#cb82-1273" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span><span class="in">`outer(th, 難度, &quot;-&quot;)`</span>：每個人的能力減掉每一題的難度，得到 200 × 5 的矩陣；</span>
-<span id="cb82-1274"><a href="#cb82-1274" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span><span class="in">`plogis()`</span>：轉成答對機率。鑑別度全部是 1；</span>
-<span id="cb82-1275"><a href="#cb82-1275" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span><span class="in">`rbinom()`</span> 依機率抽 0/1，<span class="in">`matrix(..., 200)`</span> 排成 200 列。</span>
-<span id="cb82-1276"><a href="#cb82-1276" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span><span class="in">`block_model()`</span>：用積木寫 2PL。這一行給資料。</span>
-<span id="cb82-1277"><a href="#cb82-1277" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>能力：每個人一個，標準常態。</span>
-<span id="cb82-1278"><a href="#cb82-1278" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>鑑別度：每題一個，先驗 N⁺(1, 1)。</span>
-<span id="cb82-1279"><a href="#cb82-1279" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>難度：每題一個，先驗 N(0, 3²)。</span>
-<span id="cb82-1280"><a href="#cb82-1280" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>作答：2PL。</span>
-<span id="cb82-1281"><a href="#cb82-1281" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span><span class="in">`check_ecm()`</span>：檢查這個模型的 ECM。<span class="in">`print()`</span> 連第一行的結論一起印。</span>
-<span id="cb82-1282"><a href="#cb82-1282" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1283"><a href="#cb82-1283" aria-hidden="true" tabindex="-1"></a>**輸出怎麼讀**</span>
-<span id="cb82-1284"><a href="#cb82-1284" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1285"><a href="#cb82-1285" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第一行：從 10 個起點檢查，全部通過（<span class="in">`all checks passed`</span>）。</span>
-<span id="cb82-1286"><a href="#cb82-1286" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>表格一列一項檢查。表太寬，所以分成上下兩段印：上段是 <span class="in">`check`</span>（檢查的名稱），下段是其他欄。</span>
-<span id="cb82-1287"><a href="#cb82-1287" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`worst`</span>：所有起點裡最差的值；</span>
-<span id="cb82-1288"><a href="#cb82-1288" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`limit`</span>：容許的上限；</span>
-<span id="cb82-1289"><a href="#cb82-1289" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`passed`</span>：<span class="in">`worst`</span> 小於 <span class="in">`limit`</span> 就是 <span class="in">`TRUE`</span>；</span>
-<span id="cb82-1290"><a href="#cb82-1290" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`detail`</span>：沒通過時的說明。全部通過，所以是空的。</span>
-<span id="cb82-1291"><a href="#cb82-1291" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>五項檢查對應上面三件事：</span>
-<span id="cb82-1292"><a href="#cb82-1292" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>第 1、2 列（<span class="in">`raises Q`</span>、<span class="in">`never lowers the objective`</span>）是第 1 件事，最差的下降量是 0；</span>
-<span id="cb82-1293"><a href="#cb82-1293" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>第 3 列（<span class="in">`Fisher identity`</span>）是第 2 件事；</span>
-<span id="cb82-1294"><a href="#cb82-1294" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>第 4、5 列（<span class="in">`ECM stops at a maximum`</span>）是第 3 件事：一般的最佳化方法幾乎找不到更好的點，梯度也接近 0。</span>
+<span id="cb82-1267"><a href="#cb82-1267" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>小的設定：200 人、5 題。檢查只需要小資料，跑得快。</span>
+<span id="cb82-1268"><a href="#cb82-1268" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>模擬一份交叉關係模型的資料。</span>
+<span id="cb82-1269"><a href="#cb82-1269" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>用 ECM 配適 <span class="in">`&quot;cross&quot;`</span> 模型。<span class="in">`se = FALSE`</span> 不算標準誤，比較快。</span>
+<span id="cb82-1270"><a href="#cb82-1270" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span><span class="in">`check_ecm()`</span>：檢查這個模型的 ECM。</span>
+<span id="cb82-1271"><a href="#cb82-1271" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span><span class="in">`prior = &quot;ml&quot;`</span>：檢查最大概似的目標函數，和上一行的配適一致（<span class="in">`prior = &quot;map&quot;`</span> 則檢查加上先驗的目標）；</span>
+<span id="cb82-1272"><a href="#cb82-1272" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span><span class="in">`seed = 1`</span>：起點是隨機擾動的，固定亂數讓結果可以重現；</span>
+<span id="cb82-1273"><a href="#cb82-1273" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span><span class="in">`print()`</span> 連第一行的結論一起印。</span>
+<span id="cb82-1274"><a href="#cb82-1274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1275"><a href="#cb82-1275" aria-hidden="true" tabindex="-1"></a>**輸出怎麼讀**</span>
+<span id="cb82-1276"><a href="#cb82-1276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1277"><a href="#cb82-1277" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第一行：從 10 個起點檢查，全部通過（<span class="in">`all checks passed`</span>）。</span>
+<span id="cb82-1278"><a href="#cb82-1278" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>表格一列一項檢查。表太寬，所以分成上下兩段印：上段是 <span class="in">`check`</span>（檢查的名稱），下段是其他欄。</span>
+<span id="cb82-1279"><a href="#cb82-1279" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`worst`</span>：所有起點裡最差的值；</span>
+<span id="cb82-1280"><a href="#cb82-1280" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`limit`</span>：容許的上限；</span>
+<span id="cb82-1281"><a href="#cb82-1281" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`passed`</span>：<span class="in">`worst`</span> 小於 <span class="in">`limit`</span> 就是 <span class="in">`TRUE`</span>；</span>
+<span id="cb82-1282"><a href="#cb82-1282" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span><span class="in">`detail`</span>：這項檢查用到套件裡的哪個函數。</span>
+<span id="cb82-1283"><a href="#cb82-1283" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>四項檢查對應上面三件事：</span>
+<span id="cb82-1284"><a href="#cb82-1284" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>第 1 列（<span class="in">`never lowers the objective`</span>）是第 1 件事：一次完整的 M 步（<span class="in">`em_mstep()`</span>）從每個起點都不讓目標函數變小，最差的下降量是 0；</span>
+<span id="cb82-1285"><a href="#cb82-1285" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>第 2 列（<span class="in">`Fisher identity`</span>）是第 2 件事：E 步算出的分數（<span class="in">`em_score()`</span>）等於目標函數的數值梯度；</span>
+<span id="cb82-1286"><a href="#cb82-1286" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>第 3、4 列（<span class="in">`ECM stops at a maximum`</span>）是第 3 件事：一般的最佳化方法幾乎找不到更好的點，梯度也接近 0。</span>
+<span id="cb82-1287"><a href="#cb82-1287" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`gibbs()`</span> 的結果也可以交給 <span class="in">`check_ecm()`</span>（它只用到模型與資料）；分位數模型沒有 ECM，不能檢查。</span>
+<span id="cb82-1288"><a href="#cb82-1288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1289"><a href="#cb82-1289" aria-hidden="true" tabindex="-1"></a><span class="fu">### 其他比對</span></span>
+<span id="cb82-1290"><a href="#cb82-1290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-1291"><a href="#cb82-1291" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**三方比對：** 博士論文的 TIMSS 資料（631 人、14 題）上，11 個模型的每一個參數，birtRcpp、修正後的 Julia 與 JAGS 的差異都在抽樣誤差內。</span>
+<span id="cb82-1292"><a href="#cb82-1292" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**抽樣器：** 14 種模型與設定的 <span class="in">`check_sampler()`</span> 全部通過。</span>
+<span id="cb82-1293"><a href="#cb82-1293" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**ECM：** 五個模型的 log-likelihood、估計值與標準誤，和 birt 套件的估計一致到 1e-5。</span>
+<span id="cb82-1294"><a href="#cb82-1294" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**速度：** TIMSS 上一個模型 12000 次 × 3 條鏈約 2–3 分鐘，JAGS 需要 8–40 分鐘。</span>
 <span id="cb82-1295"><a href="#cb82-1295" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1296"><a href="#cb82-1296" aria-hidden="true" tabindex="-1"></a><span class="fu">### 其他比對</span></span>
+<span id="cb82-1296"><a href="#cb82-1296" aria-hidden="true" tabindex="-1"></a><span class="fu">## 參考文獻</span></span>
 <span id="cb82-1297"><a href="#cb82-1297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1298"><a href="#cb82-1298" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**三方比對：** 博士論文的 TIMSS 資料（631 人、14 題）上，11 個模型的每一個參數，birtRcpp、修正後的 Julia 與 JAGS 的差異都在抽樣誤差內。</span>
-<span id="cb82-1299"><a href="#cb82-1299" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**抽樣器：** 14 種模型與設定的 <span class="in">`check_sampler()`</span> 全部通過。</span>
-<span id="cb82-1300"><a href="#cb82-1300" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**ECM：** 五個模型的 log-likelihood、估計值與標準誤，和 birt 套件的估計一致到 1e-5。</span>
-<span id="cb82-1301"><a href="#cb82-1301" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**速度：** TIMSS 上一個模型 12000 次 × 3 條鏈約 2–3 分鐘，JAGS 需要 8–40 分鐘。</span>
-<span id="cb82-1302"><a href="#cb82-1302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1303"><a href="#cb82-1303" aria-hidden="true" tabindex="-1"></a><span class="fu">## 參考文獻</span></span>
-<span id="cb82-1304"><a href="#cb82-1304" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-1305"><a href="#cb82-1305" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Bock, R. D., &amp; Aitkin, M. (1981). Marginal maximum likelihood estimation of item parameters: Application of an EM algorithm. *Psychometrika, 46*(4), 443–459.</span>
-<span id="cb82-1306"><a href="#cb82-1306" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Geweke, J. (2004). Getting it right: Joint distribution tests of posterior simulators. *Journal of the American Statistical Association, 99*(467), 799–804.</span>
-<span id="cb82-1307"><a href="#cb82-1307" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Louis, T. A. (1982). Finding the observed information matrix when using the EM algorithm. *Journal of the Royal Statistical Society: Series B, 44*(2), 226–233.</span>
-<span id="cb82-1308"><a href="#cb82-1308" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Marianti, S., Fox, J.-P., Avetisyan, M., Veldkamp, B. P., &amp; Tijmstra, J. (2014). Testing for aberrant behavior in response time modeling. *Journal of Educational and Behavioral Statistics, 39*(6), 426–451.</span>
-<span id="cb82-1309"><a href="#cb82-1309" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Meng, X.-L., &amp; Rubin, D. B. (1993). Maximum likelihood estimation via the ECM algorithm: A general framework. *Biometrika, 80*(2), 267–278.</span>
-<span id="cb82-1310"><a href="#cb82-1310" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Merkle, E. C., &amp; Zeileis, A. (2013). Tests of measurement invariance without subgroups: A generalization of classical methods. *Psychometrika, 78*(1), 59–82.</span>
-<span id="cb82-1311"><a href="#cb82-1311" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Polson, N. G., Scott, J. G., &amp; Windle, J. (2013). Bayesian inference for logistic models using Pólya-Gamma latent variables. *Journal of the American Statistical Association, 108*(504), 1339–1349.</span>
-<span id="cb82-1312"><a href="#cb82-1312" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Tsai, J.-W. (2025). 博士論文，國立政治大學。程式：ExtendedRtIrtModeling.jl。</span>
-<span id="cb82-1313"><a href="#cb82-1313" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>van der Linden, W. J. (2007). A hierarchical framework for modeling speed and accuracy on test items. *Psychometrika, 72*(3), 287–308.</span>
-<span id="cb82-1314"><a href="#cb82-1314" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Varadhan, R., &amp; Roland, C. (2008). Simple and globally convergent methods for accelerating the convergence of any EM algorithm. *Scandinavian Journal of Statistics, 35*(2), 335–353.</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></div>
+<span id="cb82-1298"><a href="#cb82-1298" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Bock, R. D., &amp; Aitkin, M. (1981). Marginal maximum likelihood estimation of item parameters: Application of an EM algorithm. *Psychometrika, 46*(4), 443–459.</span>
+<span id="cb82-1299"><a href="#cb82-1299" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Geweke, J. (2004). Getting it right: Joint distribution tests of posterior simulators. *Journal of the American Statistical Association, 99*(467), 799–804.</span>
+<span id="cb82-1300"><a href="#cb82-1300" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Louis, T. A. (1982). Finding the observed information matrix when using the EM algorithm. *Journal of the Royal Statistical Society: Series B, 44*(2), 226–233.</span>
+<span id="cb82-1301"><a href="#cb82-1301" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Marianti, S., Fox, J.-P., Avetisyan, M., Veldkamp, B. P., &amp; Tijmstra, J. (2014). Testing for aberrant behavior in response time modeling. *Journal of Educational and Behavioral Statistics, 39*(6), 426–451.</span>
+<span id="cb82-1302"><a href="#cb82-1302" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Meng, X.-L., &amp; Rubin, D. B. (1993). Maximum likelihood estimation via the ECM algorithm: A general framework. *Biometrika, 80*(2), 267–278.</span>
+<span id="cb82-1303"><a href="#cb82-1303" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Merkle, E. C., &amp; Zeileis, A. (2013). Tests of measurement invariance without subgroups: A generalization of classical methods. *Psychometrika, 78*(1), 59–82.</span>
+<span id="cb82-1304"><a href="#cb82-1304" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Polson, N. G., Scott, J. G., &amp; Windle, J. (2013). Bayesian inference for logistic models using Pólya-Gamma latent variables. *Journal of the American Statistical Association, 108*(504), 1339–1349.</span>
+<span id="cb82-1305"><a href="#cb82-1305" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Tsai, J.-W. (2025). 博士論文，國立政治大學。程式：ExtendedRtIrtModeling.jl。</span>
+<span id="cb82-1306"><a href="#cb82-1306" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>van der Linden, W. J. (2007). A hierarchical framework for modeling speed and accuracy on test items. *Psychometrika, 72*(3), 287–308.</span>
+<span id="cb82-1307"><a href="#cb82-1307" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Varadhan, R., &amp; Roland, C. (2008). Simple and globally convergent methods for accelerating the convergence of any EM algorithm. *Scandinavian Journal of Statistics, 35*(2), 335–353.</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
