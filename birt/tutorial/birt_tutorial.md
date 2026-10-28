@@ -1,6 +1,6 @@
 # birt 使用教學
 Jie-Wen Tsai
-2026-10-28
+2026-10-29
 
 - [0. 安裝與名詞](#0-安裝與名詞)
 - [1. 快速開始：第一個 ELGM 模型](#1-快速開始第一個-elgm-模型)
@@ -15,7 +15,20 @@ Jie-Wen Tsai
 - [10. 常見問題](#10-常見問題)
 - [參考文獻](#參考文獻)
 
-這份教學寫給研究生。 我們從安裝開始，一步一步配適作答反應加作答時間的模型。
+這份教學寫給想分析「作答正確性 + 作答時間」的學生與研究者，修過基礎統計、用過 R 就能讀。 我們從安裝開始，一步一步配適作答反應加作答時間的模型。
+
+**只想先跑出第一個結果：** 讀第 1 節的 1.1–1.5（`rtirt_syntax()` → `birt()` → `summary()` → `scores()`），再看第 4 節的 `compare()`。其他各節用到時再查。
+
+**我想知道……該用什麼：**
+
+| 我想知道 | 用什麼 | 教學位置 |
+|----|----|----|
+| 能力和速度有沒有相關 | `rtirt_syntax()` 寫模型，`summary()` 的 `ability ~~ speed` | 1.2–1.4 |
+| 每個人的能力、速度分數 | `scores()`、`reliability()` | 1.5 |
+| 哪個模型比較好 | `compare()` | 4 |
+| 題目有沒有 DIF（對某一組不公平） | 最大概似配適，再用 `score_test()` 或 `ipcr()`；找到後在語法加 `E(y3) ~ x2` | 7.1、7.3 |
+| 共變項對速度、能力的影響 | `rtirt_syntax(structure = "path", cov = )`，或語法 `speed ~ x1` | 5 |
+| 要 p 值、AIC、BIC | 同一個模型改用最大概似：`control = rtmb_control(method = "ml")` | 4.2、7 |
 
 **這份教學的主線是 ELGM。**
 
@@ -42,18 +55,20 @@ Jie-Wen Tsai
 ### 0.1 安裝
 
 ``` r
-install.packages(c("RTMB", "lavaan", "statmod", "coda", "loo"))
-install.packages("birt_0.1.0.tar.gz", repos = NULL, type = "source")
+install.packages("remotes")
+remotes::install_github("jiewenTsai/birt")
 # 選配：JAGS 引擎（另外要先裝 JAGS 4.3 以上）
 install.packages("R2jags")
 ```
 
 逐行說明：
 
-1.  安裝 birt 的相依套件。RTMB 是 ELGM 與最大概似的計算核心，是 birt 的一部分，一定要裝。
-2.  從原始碼檔安裝 birt。
+1.  安裝 remotes 套件（用來從 GitHub 安裝）。
+2.  從 GitHub 安裝 birt，和英文 README 相同。相依套件（RTMB、lavaan、statmod、coda、loo 等）會一起裝好。RTMB 是 ELGM 與最大概似的計算核心。
 3.  註解：下一行是選配。
 4.  R2jags 只在 `engine = "jags"` 時需要；它還需要先從 <https://mcmc-jags.sourceforge.io/> 安裝 JAGS 程式本身。
+
+如果拿到的是老師或作者提供的原始碼檔（例如 `birt_0.2.0.tar.gz`），沒有網路時可以改用 `install.packages(c("RTMB", "lavaan", "statmod", "coda", "loo"))` 先裝相依套件，再用 `install.packages("birt_0.2.0.tar.gz", repos = NULL, type = "source")` 安裝。
 
 輸出怎麼讀：
 
@@ -70,11 +85,11 @@ install.packages("R2jags")
 | 條件概似（conditional likelihood） | 把每個人的潛在變項值當成已知時，資料的機率 p(y \| θ, ψ)。ψ 是題目參數等其他參數。 |
 | 邊際概似 L(ψ)（marginal likelihood） | 把每個人的潛在變項積分掉之後的資料機率 ∫ p(y \| θ, ψ) p(θ \| ψ) dθ。它只是 ψ 的函數。輸出中的 `logLik`、`-2logL` 都指它。 |
 | AGHQ | 適應性 Gauss–Hermite 積分（adaptive Gauss–Hermite quadrature）。在每個人的後驗眾數附近放少數節點，用加權和近似上面的積分。 |
-| 最大概似（ML） | 找出讓邊際概似最大的 ψ。不用先驗。birt 寫成 `rtmb_control(method = "aghq")`。 |
+| 最大概似（ML） | 找出讓邊際概似最大的 ψ。不用先驗。birt 寫成 `rtmb_control(method = "aghq")`，也可以寫 `method = "ml"`（同一件事）。 |
 | ELGM | 延伸潛在高斯模型（extended latent Gaussian model；Stringer, Brown & Stafford, 2023）的近似貝氏推論。內層用 AGHQ 把每個人積掉，外層對其餘參數的後驗再做一次適應性積分。birt 的預設。 |
 | 先驗（prior） | 看資料之前對參數的假設分配。ELGM 與 JAGS 都會用；最大概似不用。 |
-| 後驗平均數、後驗 SD | 看過資料後，參數分配的平均數與標準差。ELGM 的 `est` 與 `sd` 就是這兩個量。 |
-| 95% 可信區間 | 後驗分配中間 95% 的範圍。輸出中的 `q025`、`q975`（或 `pi.lower`、`pi.upper`）。 |
+| 後驗平均數、後驗 SD | 看過資料後，參數分配的平均數與標準差。ELGM 的 `est` 與 `se` 就是這兩個量（在貝氏配適裡，`se` 欄放的是後驗 SD）。 |
+| 95% 可信區間 | 後驗分配中間 95% 的範圍。輸出中的 `lower`、`upper`（`summary()` 的表上是 `pi.lower`、`pi.upper`）。 |
 | 模型證據 p(y)（輸出叫 log marginal likelihood，`logML`） | 把 L(ψ) 再對參數 ψ 依先驗積分：log p(y) = log ∫ L(ψ) p(ψ) dψ。ELGM 的外層積分順便算出它。它和 log L(ψ) 不是同一個數。 |
 | 超參數（hyperparameter） | 控制潛在變項分配的少數參數，例如 speed 的 SD、ability 與 speed 的相關、SHASH 的形狀、`V(f) ~ z` 的調節效果。ELGM 的外層只在這些方向放積分節點。 |
 | 潛在高斯場 W | ELGM 中先被積分掉的那一組常態潛在變項。birt 的 W 只包含每個人的潛在變項。 |
@@ -101,7 +116,7 @@ library(birt)
 ### 1.1 資料
 
 ``` r
-d <- sim_rtirt(N = 500, K = 10)
+d <- sim_rtirt(N = 500, K = 10, seed = 1)
 head(round(d[, c("y1", "y2", "t1", "t2", "x1", "x2")], 2), 3)
 ```
 
@@ -150,7 +165,7 @@ cat(model)
 - **第二行 `speed =~ -1*t1 + ...`：** `speed` 的負荷量都固定為 −1。speed 越高，log 時間越短。這就是對數常態作答時間模型。
 - **第三行 `ability ~~ speed`：** 兩個潛在變項的相關。
 - 語法沿用 lavaan：`=~` 是「由……測量」，`~~` 是共變，`~` 是迴歸。
-- birt 有一個專屬規則：同一個因素的第二行 `=~` 代表交叉負荷（1.6 節、第 2 節）。
+- birt 有一個專屬規則：一個因素的 `=~` 若寫在**另一個因素**的 `=~` 之後，就是交叉負荷（例如先寫 `speed =~ ...`，再寫 `ability =~ t1`；1.6 節、第 2 節）。同一個因素連續寫兩行（中間沒有別的因素）只是換行，仍是測量負荷量，和 lavaan 一樣。
 
 ### 1.3 配適
 
@@ -159,14 +174,14 @@ fit <- birt(model, data = d)
 fit
 ```
 
-    birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
-        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 28 s
+        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
       Reliability: ability 0.760, speed 0.861
-    Use summary() for the parameter table and quantiles() / plot() for the quantile effects.
+    Use summary() for the parameter table, scores() for the person scores and plot() for a plot of them.
 
 逐行說明：
 
@@ -179,12 +194,17 @@ fit
 - **`Distributions`：** 兩個潛在變項都是常態；10 個連續指標（log 時間）殘差為常態；10 個二元題用 logit。
 - **`Approximate Bayes (ELGM; W = person latents): 42 parameters`：** ELGM 的潛在高斯場 W 只放每個人的潛在變項；其餘 42 個參數由外層處理。
 - **`inner: AGHQ (k = 9) per person`：** 內層。每人用 9 × 9 個節點積掉 (ability, speed)。兩個潛在變項時預設 k = 9；只有一個潛在變項時預設 k = 21（第 8 節）。
-- **`outer: AGHQ, k = 9 on lsd2, atr`：** 外層。在兩個超參數方向各放 9 個節點：`lsd2` 是 speed 的 log SD，`atr` 是相關的 atanh 轉換。
-- **超參數怎麼選：** birt 自動挑選（`rtmb_control(hyper = "auto")`）。speed 是 SHASH 時，取它的形狀參數；否則取潛在變項的相關、路徑與 SD（含 `V(f) ~ z`）。自動挑選最多 3 個方向，多出來的改用高斯近似，並印出訊息說明（4 個方向要 5⁴ = 625 個節點，外層時間約是 3 個方向的 5 倍，結果幾乎相同）。每個方向的節點數依方向數而定：1 個方向 11 個，2 個方向 9 個，3 個方向 5 個；自己用 `hyper =` 指定更多方向時，4 個方向 5 個，更多時 3 個。
+- **`outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed)`：** 外層。在兩個超參數方向各放 9 個節點：speed 的 log SD，與相關的 atanh 轉換（內部名稱 `lsd2`、`atr`，`rtmb_control(hyper = )` 用的就是這兩個名字）。
 - **`Gaussian in 40 directions (81 nodes)`：** 其餘 40 個題目參數用高斯近似；外層總共 9 × 9 = 81 個節點。
 - **`log marginal likelihood -6883.73`：** 模型證據 log p(y)，模型比較用（第 4 節）。
 - **`-2logL at the posterior mode 13448.7`：** 在後驗眾數處的 −2 log L(ψ)。它除以 −2 是 −6724.34，和 logML 不同：logML 還包含了對參數的積分與先驗。
 - **`Reliability`：** ability 的 EAP 信度 .760，speed 為 .861。
+- `inner`、`outer` 兩行是計算細節，第一次讀可以跳過；下面的「進階」框說明外層怎麼選方向。
+
+> [!NOTE]
+> **進階：外層的超參數怎麼選**
+>
+> birt 自動挑選（`rtmb_control(hyper = "auto")`）。speed 是 SHASH 時，取它的形狀參數；否則取潛在變項的相關、路徑與 SD（含 `V(f) ~ z`）。自動挑選最多 3 個方向，多出來的改用高斯近似，並印出訊息說明（4 個方向要 5⁴ = 625 個節點，外層時間約是 3 個方向的 5 倍，結果幾乎相同）。每個方向的節點數依方向數而定：1 個方向 11 個，2 個方向 9 個，3 個方向 5 個；自己用 `hyper =` 指定更多方向時，4 個方向 5 個，更多時 3 個。
 
 ### 1.4 參數表：`summary()`
 
@@ -192,11 +212,11 @@ fit
 summary(fit)
 ```
 
-    birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
-        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 28 s
+        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
     $fit  log marginal likelihood (ELGM)
@@ -226,7 +246,7 @@ summary(fit)
     t9    continuous           -1.000      4.142      0.314
     t10   continuous           -1.000      4.728      0.184
 
-    $se  posterior SDs of the item parameters
+    $se  posterior SDs of the item parameters (the table is $se for every fit)
     item  type        ability  speed  intercept  resid_var      a      b
     y1    binary        0.152             0.117             0.152  0.131
     y2    binary        0.166             0.116             0.166  0.094
@@ -284,17 +304,17 @@ summary(fit)
     Variances:
                         Estimate  Post.SD  pi.lower  pi.upper  Prior
         ability            1.000
-        speed              0.137    0.010     0.118     0.158  sd dt(0, 1, 3) T(0,)
-        t1                 0.234    0.016     0.204     0.267  sd dt(0, 1, 3) T(0,)
-        t2                 0.181    0.013     0.158     0.209  sd dt(0, 1, 3) T(0,)
-        t3                 0.249    0.017     0.218     0.285  sd dt(0, 1, 3) T(0,)
-        t4                 0.222    0.015     0.194     0.255  sd dt(0, 1, 3) T(0,)
-        t5                 0.194    0.014     0.169     0.222  sd dt(0, 1, 3) T(0,)
-        t6                 0.329    0.022     0.288     0.375  sd dt(0, 1, 3) T(0,)
-        t7                 0.209    0.015     0.182     0.239  sd dt(0, 1, 3) T(0,)
-        t8                 0.212    0.015     0.185     0.244  sd dt(0, 1, 3) T(0,)
-        t9                 0.314    0.021     0.275     0.358  sd dt(0, 1, 3) T(0,)
-        t10                0.184    0.013     0.160     0.212  sd dt(0, 1, 3) T(0,)
+        speed              0.137    0.010     0.118     0.158  on SD: dt(0, 1, 3) T(0,)
+        t1                 0.234    0.016     0.204     0.267  on SD: dt(0, 1, 3) T(0,)
+        t2                 0.181    0.013     0.158     0.209  on SD: dt(0, 1, 3) T(0,)
+        t3                 0.249    0.017     0.218     0.285  on SD: dt(0, 1, 3) T(0,)
+        t4                 0.222    0.015     0.194     0.255  on SD: dt(0, 1, 3) T(0,)
+        t5                 0.194    0.014     0.169     0.222  on SD: dt(0, 1, 3) T(0,)
+        t6                 0.329    0.022     0.288     0.375  on SD: dt(0, 1, 3) T(0,)
+        t7                 0.209    0.015     0.182     0.239  on SD: dt(0, 1, 3) T(0,)
+        t8                 0.212    0.015     0.185     0.244  on SD: dt(0, 1, 3) T(0,)
+        t9                 0.314    0.021     0.275     0.358  on SD: dt(0, 1, 3) T(0,)
+        t10                0.184    0.013     0.160     0.212  on SD: dt(0, 1, 3) T(0,)
 
     Intercepts:
                         Estimate  Post.SD  pi.lower  pi.upper  Prior
@@ -319,6 +339,8 @@ summary(fit)
         t9                 4.142    0.030     4.084     4.201  dnorm(0, 1/100)
         t10                4.728    0.025     4.678     4.777  dnorm(0, 1/100)
 
+    Approximate Bayes (ELGM): posterior SDs and 95% credible intervals, no p-values. For p-values and AIC / BIC, fit by maximum likelihood: birt(..., control = rtmb_control(method = "ml"))
+
     $reliability  reliability of the EAP scores: var(EAP) / (var(EAP) + mean PSD^2)
     ability  speed
       0.760  0.861
@@ -336,8 +358,9 @@ summary(fit)
   - `Estimate` 是後驗平均數，`Post.SD` 是後驗 SD，`pi.lower`、`pi.upper` 是 95% 可信區間，`Prior` 是先驗。
   - `ability =~ y1` 的先驗 `hier(ability)` 是階層 lognormal 先驗：同一因素的負荷量共用一個平均數 μ。
   - `ability ~~ speed` 的估計 0.424 是相關，95% 區間 \[0.326, 0.515\]。真正的相關是 0；相關模型沒有交叉負荷，只好把偶數題「能力高、做得快」的效果吸收成 0.424 的相關。
-  - `Variances` 段中，`speed` 是速度的變異數（0.137）；`t1`–`t10` 是各題 log 時間的殘差變異數。先驗 `sd dt(0, 1, 3) T(0,)` 是對 **SD** 的半 t 分配（自由度 3）。
+  - `Variances` 段中，`speed` 是速度的變異數（0.137）；`t1`–`t10` 是各題 log 時間的殘差變異數。先驗 `on SD: dt(0, 1, 3) T(0,)` 是對 **SD**（不是變異數）的半 t 分配（自由度 3）。
   - `Intercepts` 段：二元題是 logit 截距，時間題是平均 log 時間。
+  - 表的最後一行提醒：ELGM 是近似貝氏，沒有 p 值；要 p 值與 AIC/BIC，用最大概似配適（`control = rtmb_control(method = "ml")`，第 7 節）。
 - **`$reliability`：** EAP 信度。
 
 ### 1.5 個人分數與信度
@@ -372,6 +395,20 @@ reliability(fit)
 - ELGM 的 EAP 是所有外層節點上 EAP 的加權平均，所以已經考慮了題目參數的不確定性。
 - 信度和 `fit` 印出的數字相同：ability .760、speed .861。
 
+``` r
+plot(fit)
+```
+
+![](birt_tutorial_files/figure-commonmark/scores-plot-1.png)
+
+逐行說明：
+
+1.  這個模型沒有隨分位數改變的效果（沒有 `V()` 或 `shash()`），所以 `plot()` 畫兩個潛在變項的 EAP 散布圖（`type = "scores"`）。`plot(fit, type = "information")` 畫測驗訊息：全部指標、只有作答正確性、只有作答時間，對 ability 各提供多少訊息。
+
+輸出怎麼讀：
+
+- 每一點是一個人：橫軸是 ability 的 EAP，縱軸是 speed 的 EAP。點雲往右上傾斜，就是正相關。
+
 ### 1.6 `rtirt_syntax()` 的其他選項
 
 ``` r
@@ -402,7 +439,7 @@ cat(rtirt_syntax(items, times, structure = "path", cov = c("x1", "x2")))
 
 輸出怎麼讀：
 
-- 第一段多了一行 `ability =~ t1 + ... + t10`。同一個因素的第二行 `=~` 就是**交叉負荷**：能力對 log 時間的直接效果。這時沒有 `ability ~~ speed`，因為所有題目共同的交叉負荷就等於相關（見第 4 節）。
+- 第一段多了一行 `ability =~ t1 + ... + t10`。它寫在 `speed =~` 之後，所以是**交叉負荷**：能力對 log 時間的直接效果。這時沒有 `ability ~~ speed`，因為所有題目共同的交叉負荷就等於相關（見第 4 節）。
 - 第二段最後一行 `speed ~ ability + x1 + x2` 是潛在迴歸：速度對能力與兩個共變項的迴歸。
 
 | 參數 | 選項 |
@@ -474,8 +511,8 @@ invisible(capture.output(rtmb_code(model, data = dsec, estimate = FALSE)))
 
 | 寫法 | 意思 | 預設先驗 |
 |----|----|----|
-| `f =~ y1 + y2` | 每個因素的第一行：測量負荷量 | 階層 lognormal（正）：log λ_i ~ N(μ_f, 1)，μ_f ~ N(0, 10)（10 是變異數，SD 3.16；JAGS 寫法 `dnorm(0, 0.1)`） |
-| `f =~ t1 + t2`（同因素第二行起） | 交叉負荷 | `dnorm(0, 1)` |
+| `f =~ y1 + y2` | 每個因素最前面的 `=~`（連續寫成好幾行也算）：測量負荷量 | 階層 lognormal（正）：log λ_i ~ N(μ_f, 1)，μ_f ~ N(0, 10)（10 是變異數，SD 3.16；JAGS 寫法 `dnorm(0, 0.1)`） |
+| `f =~ t1 + t2`（寫在另一個因素的 `=~` 之後） | 交叉負荷 | `dnorm(0, 1)` |
 | `f =~ -1*t1` | 固定值 | — |
 | `f =~ r*t1 + r*t2` | 相同標籤代表同一個參數 | — |
 | `f =~ prior("dnorm(0, 100)")*t1` | 逐一自訂先驗（**精確度**參數化） | — |
@@ -484,7 +521,9 @@ invisible(capture.output(rtmb_code(model, data = dsec, estimate = FALSE)))
 | `f ~~ 1*f` | 固定（殘差）變異數 | — |
 | `f ~ x1 + x2` | 潛在迴歸 | `dnorm(0, 1)` |
 | `f2 ~ f1` | 兩個潛在變項之間的路徑 | `dnorm(0, 1)` |
-| `V(t1) ~ f`、`E(y1) ~ z` | 調節敘述（第 6、8 節） | `dnorm(0, 1)` |
+| `E(y3) ~ x2` | 題目 y3 的難度（截距）隨 x2 改變：均一 DIF（7.3 節有完整例子） | `dnorm(0, 1)` |
+| `E(y3) ~ x2:f` | 題目 y3 的鑑別度（負荷量）隨 x2 改變：非均一 DIF（第 8 節） | `dnorm(0, 1)` |
+| `V(t1) ~ f` | t1 的殘差 SD 隨 f 改變（第 6 節）；`E()`、`V()` 要大寫 | `dnorm(0, 1)` |
 
 **識別由套件自動處理：**
 
@@ -654,11 +693,11 @@ head(as.data.frame(s), 4)
 print(s, tables = "fit")
 ```
 
-    birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
-        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 28 s
+        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
     $fit  log marginal likelihood (ELGM)
@@ -683,8 +722,10 @@ print(s, tables = "fit")
 | 量 | `summary()$parameters` | `as.data.frame(summary())` | `estimates()` |
 |----|----|----|----|
 | 後驗平均數（ML：估計值） | `Estimate` | `est` | `est` |
-| 後驗 SD（ML：標準誤） | `Post.SD` | `se` | `sd` |
-| 95% 區間下界、上界 | `pi.lower`、`pi.upper` | `lower`、`upper` | `q025`、`q975` |
+| 後驗 SD（ML：標準誤） | `Post.SD`（ML：`Std.Err`） | `se` | `se` |
+| 95% 區間下界、上界 | `pi.lower`、`pi.upper`（ML：`ci.lower`、`ci.upper`） | `lower`、`upper` | `lower`、`upper` |
+
+`as.data.frame(summary())` 與 `estimates()` 的欄名在 ELGM、ML、JAGS 都一樣，所以同一段程式可以處理三種配適。birt 0.1.0 的舊欄名（`sd`、`q025`、`q975`、`ci.lower`、`ci.upper`）用 `$` 或 `[` 取仍然可以，但會出現一次警告。
 
 | 元素 | 內容 |
 |----|----|
@@ -703,14 +744,14 @@ e <- estimates(fit)
 names(e)
 ```
 
-    [1] "lhs"   "op"    "rhs"   "prior" "est"   "sd"    "q025"  "q975" 
+    [1] "lhs"   "op"    "rhs"   "prior" "est"   "se"    "lower" "upper"
 
 ``` r
 e[e$op == "~~" & e$lhs != e$rhs, ]
 ```
 
     # A tibble: 1 × 8
-      lhs     op    rhs   prior          est     sd  q025  q975
+      lhs     op    rhs   prior          est     se lower upper
       <chr>   <chr> <chr> <chr>        <dbl>  <dbl> <dbl> <dbl>
     1 ability ~~    speed dunif(-1, 1) 0.424 0.0485 0.326 0.515
 
@@ -722,7 +763,7 @@ e[e$op == "~~" & e$lhs != e$rhs, ]
 
 輸出怎麼讀：
 
-- 欄位：`lhs`、`op`、`rhs`、`prior`、`est`（後驗平均數）、`sd`（後驗 SD）、`q025`、`q975`（95% 可信區間）。JAGS 配適的欄名相同，所以程式可以共用。
+- 欄位：`lhs`、`op`、`rhs`、`prior`、`est`（後驗平均數）、`se`（後驗 SD）、`lower`、`upper`（95% 可信區間）。ML 與 JAGS 配適的欄名相同（ML 多了 `z`、`pvalue`），所以程式可以共用。
 - 相關的後驗平均數 0.424，後驗 SD 0.048。
 
 ### 3.3 模型式子：`equations()`
@@ -872,10 +913,10 @@ convergence(fit)
     method                                             nlminb_code  max_abs_gradient  se_available
     ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer            0            0.0009        1.0000
     ELGM outer quadrature: 81 nodes, effective 12.0; largest mass on the two outermost nodes of a direction 0.000 (Gaussian: 0.000); max log posterior above the mode 0.000
-    (the AGHQ rounds below refer to the posterior mode, i.e. -2 log L - 2 log prior)
-    AGHQ rounds (-2logL): 13608.506, 13608.261, 13608.261
-    Quadrature check (-2logL at the estimates): k=9 13608.261, k=15 13608.262
-    Laplace -2logL (start): 13621.868
+    (the inner rounds below find the posterior mode: -2 log posterior = -2logL - 2 log prior, up to a constant; the header gives -2logL at the mode)
+    AGHQ rounds (-2 log posterior): 13608.506, 13608.261, 13608.261
+    Quadrature check (-2 log posterior at the mode): k=9 13608.261, k=15 13608.262
+    Laplace -2 log posterior (start): 13621.868
 
 逐行說明：
 
@@ -885,7 +926,7 @@ convergence(fit)
 
 - `nlminb_code` 0 表示最佳化正常結束；`max_abs_gradient` 接近 0 表示到達眾數。
 - **外層：** 81 個節點，有效 12.0 個。`largest mass on the two outermost nodes of a direction 0.000 (Gaussian: 0.000)`：每個超參數方向最外面兩個節點上的後驗質量（取最大的方向），與常態後驗應有的值比較。若遠大於常態值，表示網格不夠寬，會有警告（第 6 節會遇到）。`max log posterior above the mode 0.000`：沒有節點比眾數高，沒有多峰的跡象。
-- **AGHQ rounds：** 第一個數是在 Laplace 起始值、以 AGHQ 重新計算的目標函數；後兩個是第 1、2 輪。最後兩個相同，表示收斂。
+- **AGHQ rounds (-2 log posterior)：** 第一個數是在 Laplace 起始值、以 AGHQ 重新計算的目標函數；後兩個是第 1、2 輪。最後兩個相同，表示收斂。ELGM 的目標函數是 −2 log L − 2 log 先驗，所以標成 `-2 log posterior`，和開頭的 `-2logL at the posterior mode` 不是同一個數；最大概似配適則標成 `-2logL`。
 - **Quadrature check：** k = 9 與 k = 15 的結果幾乎相同。
 
 ### 3.6 常用函數
@@ -904,7 +945,7 @@ convergence(fit)
 
 ### 3.7 ELGM 準不準？
 
-ELGM 是近似。我們用 NUTS（tmbstan 抽同一個聯合後驗，人與參數一起抽）核對過（`scripts/38_elgm_check.R`）：
+ELGM 是近似。我們用 NUTS（tmbstan 抽同一個聯合後驗，人與參數一起抽）核對過（作者的驗證腳本，不在套件中）：
 
 | 模型（N = 300–400）   | 參數          | ELGM            | NUTS            |
 |-----------------------|---------------|-----------------|-----------------|
@@ -989,7 +1030,7 @@ e[e$op == "~", ]
 ```
 
     # A tibble: 3 × 8
-      lhs   op    rhs     prior           est     sd    q025   q975
+      lhs   op    rhs     prior           est     se   lower  upper
       <chr> <chr> <chr>   <chr>         <dbl>  <dbl>   <dbl>  <dbl>
     1 speed ~     ability dnorm(0, 1) 0.156   0.0193  0.119  0.194 
     2 speed ~     x1      dnorm(0, 1) 0.109   0.0158  0.0782 0.140 
@@ -1031,22 +1072,22 @@ SHASH 是把標準常態 z 經過一個轉換函數 T 得到的分配。birt 把
 r_s <- birt(reg, d, family = list(speed = shash()))
 ```
 
-    Warning: ELGM: the posterior is too wide for the outer grid along eps2: 3.4% of
-    the mass is on its two outermost nodes (Gaussian posterior: 0.0%; limit: 2.5%;
-    k_hyper = 9), so the grid may cut off a tail of the posterior: check whether
-    the parameter is weakly determined (e.g. a variance near 0) and refit with a
-    larger k_hyper
+    Warning: ELGM: the posterior is too wide for the outer grid along eps2
+    (skew(speed)): 3.4% of the mass is on its two outermost nodes (Gaussian
+    posterior: 0.0%; limit: 2.5%; k_hyper = 9), so the grid may cut off a tail of
+    the posterior: check whether the parameter is weakly determined (e.g. a
+    variance near 0) and refit with a larger k_hyper
 
 ``` r
 r_s
 ```
 
-    birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 37 s
-        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on eps2, ldl2, Gaussian in 44 directions (81 nodes)
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 38 s
+        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on skew(speed), log tail(speed), Gaussian in 44 directions (81 nodes)
       log marginal likelihood -6872.74; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863
     Use summary() for the parameter table and quantiles() / plot() for the quantile effects.
@@ -1073,12 +1114,12 @@ r_s <- birt(reg, d, family = list(speed = shash()),
 r_s
 ```
 
-    birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 59 s
-        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 13 on eps2, ldl2, Gaussian in 44 directions (169 nodes)
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 61 s
+        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 13 on skew(speed), log tail(speed), Gaussian in 44 directions (169 nodes)
       log marginal likelihood -6872.71; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863
     Use summary() for the parameter table and quantiles() / plot() for the quantile effects.
@@ -1101,7 +1142,7 @@ e[e$lhs == "speed" & e$op %in% c("sd", "skew", "tail"), ]
 ```
 
     # A tibble: 3 × 8
-      lhs   op    rhs   prior               est     sd   q025  q975
+      lhs   op    rhs   prior               est     se  lower upper
       <chr> <chr> <chr> <chr>             <dbl>  <dbl>  <dbl> <dbl>
     1 speed sd    ""    dt(0, 1, 3) T(0,) 0.353 0.0259  0.299 0.401
     2 speed skew  ""    dnorm(0, 1)       0.105 0.234  -0.289 0.630
@@ -1184,11 +1225,11 @@ f5 <- birt(m5, d)
 f5
 ```
 
-    birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (log sd ~ ability) (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 61 parameters; 18 s
-        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 11 on lsd2, Gaussian in 60 directions (11 nodes)
+      Approximate Bayes (ELGM; W = person latents): 61 parameters; 20 s
+        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 11 on log sd(speed), Gaussian in 60 directions (11 nodes)
       log marginal likelihood -6762.95; -2logL at the posterior mode 13071.3
       Reliability: ability 0.811, speed 0.823
     Use summary() for the parameter table and quantiles() / plot() for the quantile effects.
@@ -1902,7 +1943,7 @@ dplyr::filter(ipc$coefficients, p_holm < 0.05)
 5.  只用作答題的 2PL 模型。
 6.  最大概似配適（`ipcr()` 和 `score_test()` 一樣，只接受最大概似配適）。
 7.  每個參數的 IPC 對 x1、x2 做迴歸。
-8.  只看 Holm 校正後 p \< .05 的斜率。`print(ipc)` 會列出全部斜率。
+8.  只看 Holm 校正後 p \< .05 的斜率（表格形式，方便後續處理）。`print(ipc)` 也只列這些斜率，依 p 值排序，並說明內部尺度怎麼讀；`print(ipc, all = TRUE)` 列出全部。
 
 輸出怎麼讀：
 
@@ -1921,9 +1962,9 @@ e[e$lhs == "E(y3)", ]
 ```
 
     # A tibble: 1 × 9
-      lhs   op    rhs      est    se     z    pvalue ci.lower ci.upper
-      <chr> <chr> <chr>  <dbl> <dbl> <dbl>     <dbl>    <dbl>    <dbl>
-    1 E(y3) ~     x2    -0.708 0.178 -3.99 0.0000665    -1.06   -0.360
+      lhs   op    rhs      est    se     z    pvalue lower  upper
+      <chr> <chr> <chr>  <dbl> <dbl> <dbl>     <dbl> <dbl>  <dbl>
+    1 E(y3) ~     x2    -0.708 0.178 -3.99 0.0000665 -1.06 -0.360
 
 逐行說明：
 
@@ -1999,7 +2040,7 @@ $$
 在 `birt()` 加上 `ordered = TRUE`，每一個調節效果寫一行**調節敘述**：把條件動差對調節變項做迴歸，`E()` 表示期望值，`V()` 表示變異數。
 
 ``` r
-dh <- sim_hgrm(N = 600, J = 8)
+dh <- sim_hgrm(N = 600, J = 8, seed = 1)
 dh$logT <- as.numeric(scale(dh$logT))
 m_ml <- '
   SA =~ y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8
@@ -2012,13 +2053,13 @@ mn <- birt(m_ml, dh, ordered = TRUE)
 summary(mn)
 ```
 
-    birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       600 persons; latent variables: SA
       Distributions: SA: normal (log sd ~ logT); 8 ordinal: grm (categories 3/4)
       Covariates: logT
       Moderators: logT (shift logT: free 2; loading logT: equal 8)
-      Approximate Bayes (ELGM; W = person latents): 36 parameters; 4 s
-        inner: AGHQ (k = 21) per person; outer: AGHQ, k = 11 on alpha1, Gaussian in 35 directions (11 nodes)
+      Approximate Bayes (ELGM; W = person latents): 36 parameters; 5 s
+        inner: AGHQ (k = 21) per person; outer: AGHQ, k = 11 on log sd(SA) ~ logT, Gaussian in 35 directions (11 nodes)
       log marginal likelihood -5171.77; -2logL at the posterior mode 10133.0
 
     $fit  log marginal likelihood (ELGM)
@@ -2036,7 +2077,7 @@ summary(mn)
     y7    ordinal  1.015  -1.889  -0.039  0.873
     y8    ordinal  1.650  -0.187  -0.015  2.004
 
-    $se  posterior SDs of the item parameters
+    $se  posterior SDs of the item parameters (the table is $se for every fit)
     item  type        SA     t1     t2     t3
     y1    ordinal  0.110  0.141  0.124
     y2    ordinal  0.108  0.104  0.113  0.245
@@ -2119,6 +2160,8 @@ summary(mn)
         y8|t1             -0.187    0.074    -0.332    -0.042  dnorm(0, 1/4)
         y8|t2             -0.015    0.072    -0.157     0.126  dlnorm(-0.5, 1)
         y8|t3              2.004    0.149     1.712     2.296  dlnorm(-0.5, 1)
+
+    Approximate Bayes (ELGM): posterior SDs and 95% credible intervals, no p-values. For p-values and AIC / BIC, fit by maximum likelihood: birt(..., control = rtmb_control(method = "ml"))
 
     $moderation  moderation effects of the indicators; flagged: BF10 >= 3, or 95% interval excluding 0 (ML: p < .05)
     item  parameter            moderator  prior          est     sd   q025   q975  flagged
@@ -2442,10 +2485,10 @@ jfit <- run(m2b, data = d, label = "M2b")
 jfit
 ```
 
-    birt 0.1.0 [M2b]
+    birt 0.2.0 [M2b]
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 17 s
+      JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 28 s
       Reliability: ability 0.805, speed 0.822
       LOOIC 13174.6 (SE 114.1), WAIC 13174.3, DIC 13176.0
     Use summary() for the parameter table.
@@ -2696,7 +2739,7 @@ invisible(capture.output(code <- jags_code(jfit)))
 cat(head(strsplit(code, "\n")[[1]], 12), sep = "\n")
 ```
 
-    # generated by birt 0.1.0
+    # generated by birt 0.2.0
     model {
       for (j in 1:N) {
         logit(p_y1[j]) <- d_y1 + lam_ability_y1 * ability[j]

@@ -5,7 +5,7 @@
 # per-person adaptive Gauss-Hermite quadrature (AGHQ), and the posterior of the other parameters
 # by an outer adaptive quadrature, with the priors of dpriors().
 library(birt)
-d <- sim_rtirt(N = 500, K = 10) # y1..y10 (0/1), t1..t10 (log RT), x1, x2
+d <- sim_rtirt(N = 500, K = 10, seed = 1) # y1..y10 (0/1), t1..t10 (log RT), x1, x2
 head(d)
 
 y <- paste0("y", 1:10)

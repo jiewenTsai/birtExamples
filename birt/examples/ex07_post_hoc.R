@@ -1,6 +1,6 @@
 # Example 7. Using a fitted model for further quantities (no refitting)
 library(birt)
-d <- sim_rtirt(N = 500, K = 10)
+d <- sim_rtirt(N = 500, K = 10, seed = 1)
 y <- paste0("y", 1:10)
 t <- paste0("t", 1:10)
 model <- rtirt_syntax(y, t, cross = "free") # item-specific cross-loadings of ability on log RT

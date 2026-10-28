@@ -5,7 +5,7 @@
 # moderates the discrimination (nonuniform DIF). The models are fitted by ELGM (the default);
 # the score-based DIF screen needs maximum likelihood, control = rtmb_control(method = "aghq").
 library(birt)
-d <- sim_hgrm(N = 800, J = 8) # y1..y8 (1-4), Time, logT; true DIF (threshold shift) in y1, y2
+d <- sim_hgrm(N = 800, J = 8, seed = 1) # y1..y8 (1-4), Time, logT; true DIF (threshold shift) in y1, y2
 d$z <- as.numeric(scale(d$logT)) # effects per SD (birt() uses moderators as given)
 items <- "SA =~ y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8"
 all8 <- "y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8"

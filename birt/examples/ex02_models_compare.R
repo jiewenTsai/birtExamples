@@ -1,6 +1,6 @@
 # Example 2. Model comparison by log marginal likelihood (ELGM) and by AIC / BIC (maximum likelihood)
 library(birt)
-d <- sim_rtirt(N = 500, K = 10) # true cross-loadings: 0 for odd items, -0.3 for even items
+d <- sim_rtirt(N = 500, K = 10, seed = 1) # true cross-loadings: 0 for odd items, -0.3 for even items
 y <- paste0("y", 1:10)
 t <- paste0("t", 1:10)
 acc <- paste("ability =~", paste(y, collapse = " + "))

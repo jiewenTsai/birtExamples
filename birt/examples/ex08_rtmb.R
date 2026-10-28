@@ -2,7 +2,7 @@
 # and the maximum likelihood tools (score tests, influence functions, IPC regression, RTMB code)
 library(birt)
 options(pillar.sigfig = 7) # fit_indices() prints logLik, AIC and BIC to two decimals
-d <- sim_rtirt(N = 500, K = 10)
+d <- sim_rtirt(N = 500, K = 10, seed = 1)
 y <- paste0("y", 1:10)
 t <- paste0("t", 1:10)
 model <- rtirt_syntax(y, t) # ability ~~ speed

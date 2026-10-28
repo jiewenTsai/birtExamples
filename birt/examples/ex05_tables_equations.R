@@ -1,6 +1,6 @@
 # Example 5. Summary tables as objects, the model as equations, the computation as steps
 library(birt)
-d <- sim_rtirt(N = 500, K = 8)
+d <- sim_rtirt(N = 500, K = 8, seed = 1)
 model <- rtirt_syntax(paste0("y", 1:8), paste0("t", 1:8), cross = "free")
 fit <- birt(model, d) # ELGM
 

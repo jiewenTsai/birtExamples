@@ -1,7 +1,7 @@
 # Example 4. Quantile effects from distributional models (RTMB, ELGM): SHASH residuals,
 # moderated scales, quantiles(), quantile_test() and simultaneous bands
 library(birt)
-d <- sim_rtirt(N = 500, K = 10, beta = c(0.15, 0))
+d <- sim_rtirt(N = 500, K = 10, beta = c(0.15, 0), seed = 1)
 y <- paste0("y", 1:10)
 t <- paste0("t", 1:10)
 

@@ -1,6 +1,6 @@
 # 新舊介面對照表
 
-2026-10-28 的重構之後，birt 與 birtRcpp 的寫法有哪些地方不一樣。舊寫法大多還能用，只是會出現「已不建議使用」的警告；改成新寫法就不會再看到警告。
+從 0.1.0 到 0.2.0（2026-10-28 的重構與 2026-10-29 的使用體驗修正），birt 與 birtRcpp 的寫法有哪些地方不一樣。舊寫法大多還能用，只是會出現「已不建議使用」的警告；改成新寫法就不會再看到警告。
 
 - birtRcpp：**改最多**。現成模型改成「給資料、用 `model =` 選模型」，很少改的設定收進 `ecm_control()`、`gibbs_control()`。
 - birt：**語法不變**。回傳的表格改成 tibble；新增 `ipcr()`，取代已不建議使用的 `dif_tree()`；錯誤訊息的呼叫回到原本的函數名稱。
@@ -23,7 +23,7 @@
 說明：
 
 - 模型的名字：`"irt"`（只有作答）、`"null"`、`"latreg"`、`"latent"`、`"cross"`。
-- `sim_data()`、`sim_para()` 的模型名字**沒有改**：只有作答的模型仍叫 `"mlirt"`。所以模擬時寫 `sim_data(cond, sim_para(cond, "mlirt"), "mlirt")`，估計時寫 `ecm(dat, model = "irt")`。
+- `sim_data()`、`sim_para()` 也接受 `"irt"`（0.2.0 起；舊名 `"mlirt"` 照樣可用，抽出的資料相同）。模型名字不分大小寫，打錯時會提示最接近的名字。
 - `cov =` 選共變項（`NULL` 是資料裡全部的共變項）；`ecm()` 與 `gibbs()` 都有。
 - `intercept =`（作答迴歸加截距）只在 `gibbs()`。
 - 分位數模型（`quantile =`）只能用 `gibbs()`：`ecm(dat, model = "cross", quantile = 0.9)` 會報錯，說要改用 `gibbs()`。
@@ -77,7 +77,14 @@
 
 不在廢止範圍：底層積木 `draw_*()`、`irt_part()`、`normal_part()` 等仍是正式函數。Julia 版的別名（`setCond()`、`GibbsRtIrtCross()` 等）也照舊。
 
-## 5. 兩個套件：表格改成 tibble
+## 5. birtRcpp：0.2.0 的其他改變
+
+- `anova(fit0, fit1)`：比較同一份資料的配適。`ecm()` 的結果給參數個數、logLik、AIC、BIC 與概似比檢定；`gibbs()` 的結果給 WAIC、LOOIC。
+- `print(fit)` 的第一行改成使用者寫的模型名字，例如 `model = "cross" (rtirt_cross)`。
+- `p <- precis(g)`、`s <- summary(qs)` 指定給變數時不再印出。
+- `ecm_control()` 交給 `gibbs()`（或反過來）、設定名稱打錯，都會說明該怎麼寫。
+
+## 6. 兩個套件：表格改成 tibble
 
 | 函數 | 舊 | 新 |
 |---|---|---|
@@ -96,7 +103,7 @@
 - tibble 沒有 row names。子集之後列號從 1 重新編，不再是原本的列號。
 - 要舊的樣子：`as.data.frame(estimates(fit))`。
 
-## 6. birt：`dif_tree()` 改用 `ipcr()`
+## 7. birt：`dif_tree()` 改用 `ipcr()`
 
 | 舊寫法 | 新寫法 |
 |---|---|
@@ -108,6 +115,17 @@
 - 斜率會往 0 縮（一步近似），所以用來篩選；效果大小請配適加上調節的模型（例如 `E(y3) ~ x2`）。
 - 回傳的 `coefficients` 是 tibble；只看顯著的斜率：`dplyr::filter(ipcr(ml, z)$coefficients, p_holm < 0.05)`。
 
-## 7. birt：錯誤訊息
+## 8. birt：`estimates()` 的欄名、模擬資料的種子
+
+| 舊寫法（0.1.0） | 新寫法（0.2.0） |
+|---|---|
+| ELGM、JAGS：`e$sd`、`e$q025`、`e$q975` | `e$se`、`e$lower`、`e$upper` |
+| ML：`e$ci.lower`、`e$ci.upper` | `e$lower`、`e$upper` |
+| `d <- sim_rtirt(N = 500, K = 10)`（預設 `seed = 1`，每次資料一樣） | `d <- sim_rtirt(N = 500, K = 10, seed = 1)` |
+
+- `estimates()` 的欄名在 ELGM、ML、JAGS 都一樣（`est`、`se`、`lower`、`upper`），和 `as.data.frame(summary(fit))` 相同。舊欄名用 `$`、`[[`、`[` 取仍然可以，每個 session 警告一次。
+- `sim_rtirt()`、`sim_hgrm()` 的預設改成 `seed = NULL`：沒給種子時跟著 session 的亂數走，所以 `set.seed()` 和模擬研究裡的重複呼叫會得到不同的資料。要和 0.1.0 一樣的資料，寫 `seed = 1`。
+
+## 9. birt：錯誤訊息
 
 birt 的語法、`birt()` 的引數都沒有改。重構時把檢查拆成小函數，錯誤訊息一度顯示小函數的名稱（例如 `Error in check_path_alias(ld, factors)`）；已改回原本的函數（`Error in parse_model(model)`），和重構前逐字相同。
