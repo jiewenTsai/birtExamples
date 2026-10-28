@@ -37,6 +37,10 @@ Quarto 把 callout 寫成 `<div>` 包住的引用；這裡的 `.md` 再把它們
 2. 想用現成的作答時間模型、要快：讀《birtRcpp 入門》。
 3. 想看估計器怎麼由完全條件分配組成：讀完《birtRcpp 入門》再讀《birtRcpp 積木》（宣告式的 `block_model()` 已不建議使用；用匯出的積木函數自己寫抽樣器，見範例 ex07–ex12）。
 
+## 從舊寫法改過來
+
+2026-10-28 起，birtRcpp 改用 `ecm(dat, model = "cross")`、`gibbs(dat, model = "cross", init = fit)` 這樣的寫法，兩個套件的表格都改成 tibble。舊寫法大多還能用（會出現「已不建議使用」的警告）；新舊寫法逐項對照見 [MIGRATION.md](MIGRATION.md)。
+
 ## 範例
 
 每個範例是一個獨立的 R 檔，可以直接執行，例如：
