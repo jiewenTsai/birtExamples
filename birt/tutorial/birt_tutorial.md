@@ -2,7 +2,7 @@
 Jie-Wen Tsai
 2026-10-29
 
-- [0. 安裝與名詞](#0-安裝與名詞)
+- [0. 給新手：第一次用 R 與 IRT](#0-給新手第一次用-r-與-irt)
 - [1. 快速開始：第一個 ELGM 模型](#1-快速開始第一個-elgm-模型)
 - [2. 語法規則與先驗](#2-語法規則與先驗)
 - [3. 物件與輸出](#3-物件與輸出)
@@ -15,9 +15,13 @@ Jie-Wen Tsai
 - [10. 常見問題](#10-常見問題)
 - [參考文獻](#參考文獻)
 
-這份教學寫給想分析「作答正確性 + 作答時間」的學生與研究者，修過基礎統計、用過 R 就能讀。 我們從安裝開始，一步一步配適作答反應加作答時間的模型。
+這份教學寫給想分析「作答正確性 + 作答時間」的學生與研究者。 我們從安裝開始，一步一步配適作答反應加作答時間的模型。
 
-**只想先跑出第一個結果：** 讀第 1 節的 1.1–1.5（`rtirt_syntax()` → `birt()` → `summary()` → `scores()`），再看第 4 節的 `compare()`。其他各節用到時再查。
+**怎麼讀這份教學：**
+
+- **第一次用 R，也沒有配適過 IRT 模型：** 從第 0 節開始。它從安裝 R 講起，最後用十幾行程式做完第一個分析。
+- **已經會 R 與 IRT：** 照 0.1 安裝 birt 之後，可以直接跳到第 1 節。後文的名詞可以查 0.9 的名詞表。
+- **只想先跑出第一個結果：** 讀第 1 節的 1.1–1.5（`rtirt_syntax()` → `birt()` → `summary()` → `scores()`），再看第 4 節的 `compare()`。其他各節用到時再查。
 
 **我想知道……該用什麼：**
 
@@ -41,7 +45,7 @@ Jie-Wen Tsai
 - **逐行說明**：每一行程式在做什麼。
 - **輸出怎麼讀**：輸出裡每一塊的意思，以及數字怎麼解讀。
 
-**程式與輸出：** 文中的程式都實際執行過。 輸出中印出的秒數會隨電腦負載改變；文中提到的時間是在同一台電腦上單獨執行時的大約值。 資料是模擬資料（`sim_rtirt()`、`sim_hgrm()`），所以任何電腦都能重現。 JAGS 的鏈數與迭代數刻意設小，只為了讓文件跑得快；實際分析請用預設值。
+**程式與輸出：** 文中的程式都實際執行過。 birt 印出的數字（`print()`、`summary()`、`estimates()`、`scores()`、`reliability()` 等）都到小數三位；p 值小於 0.001 時印成 `<0.001`，人數、參數個數等整數不帶小數。 只有顯示四捨五入，物件裡存的是完整的數值，例如 `estimates(fit)$est` 可以直接拿來計算。 輸出中印出的秒數會隨電腦負載改變；文中提到的時間是在同一台電腦上單獨執行時的大約值。 資料是模擬資料（`sim_rtirt()`、`sim_hgrm()`），所以任何電腦都能重現。 JAGS 的鏈數與迭代數刻意設小，只為了讓文件跑得快；實際分析請用預設值。
 
 **實際資料的結果：** 標明「TIMSS」或「SEL」的表格來自兩份資料的完整分析，不在本文件中執行。
 
@@ -50,9 +54,31 @@ Jie-Wen Tsai
 
 **符號：** 本文一律用 j 表示受試者（person），i 表示題目（item）。
 
-## 0. 安裝與名詞
+## 0. 給新手：第一次用 R 與 IRT
 
-### 0.1 安裝
+這一節寫給幾乎沒用過 R、也沒有配適過 IRT 模型的人。 讀完之後，你會知道資料長什麼樣子、IRT 模型在估計什麼，並且自己跑完第一個分析。 已經會 R 與 IRT 的人，照 0.1 安裝之後就可以跳到第 1 節。
+
+| 小節 | 內容                                     |
+|------|------------------------------------------|
+| 0.1  | 安裝 R、RStudio 與 birt                  |
+| 0.2  | R 的最少基礎：執行一行、`<-`、函數與引數 |
+| 0.3  | 資料長什麼樣子：資料框與 `head()`        |
+| 0.4  | 看懂錯誤訊息                             |
+| 0.5  | IRT 是什麼：能力、難度、鑑別度           |
+| 0.6  | 為什麼要看作答時間                       |
+| 0.7  | 第一個完整分析                           |
+| 0.8  | 接下來讀哪裡                             |
+| 0.9  | 名詞表                                   |
+
+### 0.1 安裝 R、RStudio 與 birt
+
+要準備三樣東西：
+
+1.  **R**：做統計計算的程式語言。從 <https://cran.r-project.org/> 下載，依作業系統（Windows、macOS、Linux）安裝。
+2.  **RStudio**：寫 R 程式的編輯器，比 R 內建的視窗好用。從 <https://posit.co/download/rstudio-desktop/> 下載免費版。先裝 R，再裝 RStudio。
+3.  **birt**：本文介紹的 R 套件。**套件**（package）是別人寫好、可以下載使用的一組函數。
+
+打開 RStudio。左下角的 Console 窗格有一個 `>` 符號，表示 R 在等你輸入指令。 把下面的程式貼進 Console，按 Enter，就會安裝 birt：
 
 ``` r
 install.packages("remotes")
@@ -64,9 +90,9 @@ install.packages("R2jags")
 逐行說明：
 
 1.  安裝 remotes 套件（用來從 GitHub 安裝）。
-2.  從 GitHub 安裝 birt，和英文 README 相同。相依套件（RTMB、lavaan、statmod、coda、loo 等）會一起裝好。RTMB 是 ELGM 與最大概似的計算核心。
+2.  從 GitHub 安裝 birt，和英文 README 相同。`remotes::install_github` 的意思是「remotes 套件裡的 `install_github()` 函數」。相依套件（RTMB、lavaan、statmod、coda、loo 等）會一起裝好。RTMB 是 ELGM 與最大概似的計算核心。
 3.  註解：下一行是選配。
-4.  R2jags 只在 `engine = "jags"` 時需要；它還需要先從 <https://mcmc-jags.sourceforge.io/> 安裝 JAGS 程式本身。
+4.  R2jags 只在 `engine = "jags"` 時需要；它還需要先從 <https://mcmc-jags.sourceforge.io/> 安裝 JAGS 程式本身。新手可以先不裝。
 
 如果拿到的是老師或作者提供的原始碼檔（例如 `birt_0.2.0.tar.gz`），沒有網路時可以改用 `install.packages(c("RTMB", "lavaan", "statmod", "coda", "loo"))` 先裝相依套件，再用 `install.packages("birt_0.2.0.tar.gz", repos = NULL, type = "source")` 安裝。
 
@@ -75,12 +101,384 @@ install.packages("R2jags")
 - 這段不在文件中執行，沒有輸出。
 - 安裝成功時，R 只會顯示下載與編譯的訊息。
 
-### 0.2 名詞表
+安裝只要做一次。之後每次打開 R，都要先用 `library()` 載入套件：
 
-下面的名詞在後文第一次出現時也會再解釋。
+``` r
+library(birt)
+```
+
+逐行說明：
+
+1.  載入 birt。RTMB 引擎在需要時自動載入，不必另外 `library(RTMB)`。
+
+輸出怎麼讀：
+
+- 沒有輸出代表載入成功。
+- 如果出現 `there is no package called 'birt'`，表示 birt 還沒裝好，請回到上一段重新安裝。
+
+### 0.2 R 的最少基礎
+
+在 RStudio 選 File → New File → R Script，開一個程式檔。 把程式寫在檔案裡，游標放在某一行，按 Ctrl + Enter（macOS 是 Cmd + Return），R 就會執行那一行，結果出現在 Console。 程式存在檔案裡，下次可以重跑，也方便別人檢查。
+
+``` r
+1 + 2
+```
+
+    [1] 3
+
+``` r
+x <- c(2, 4, 9)
+x
+```
+
+    [1] 2 4 9
+
+``` r
+mean(x)
+```
+
+    [1] 5
+
+``` r
+round(3.14159, digits = 2)
+```
+
+    [1] 3.14
+
+``` r
+round(3.14159, 2)
+```
+
+    [1] 3.14
+
+``` r
+# 井字號之後是註解，R 不會執行
+```
+
+逐行說明：
+
+1.  R 可以當計算機用。
+2.  `c()` 把幾個數字接成一個**向量**（一串數字）。`<-` 是**指定**：把右邊的結果存進左邊的名字 `x`。存起來的東西叫**物件**（object）。
+3.  只打物件的名字，R 就把它印出來。
+4.  `mean()` 是一個**函數**。括號裡放要處理的東西，叫**引數**（argument）。這裡算 `x` 的平均數。
+5.  `round()` 四捨五入。第二個引數 `digits = 2` 指定小數位數；`digits` 是這個引數的名字。
+6.  引數照順序給的時候，可以省略名字。這一行和上一行相同。
+7.  `#` 之後是註解，寫給人看的說明。
+
+輸出怎麼讀：
+
+- 每個結果前面的 `[1]` 表示「這一行從第 1 個元素開始」，不是結果的一部分。
+- 第 2 行沒有輸出：指定只把結果存起來，不會印出。
+- `mean(x)` 是 5；兩個 `round()` 都是 3.14。
+- 想知道一個函數有哪些引數，在 Console 打 `?round`，RStudio 右下角會出現說明頁。
+
+### 0.3 資料長什麼樣子
+
+IRT 的資料通常是一個表格：**每一列是一個受試者，每一欄是一個變項**。 在 R 裡，這種表格叫**資料框**（data frame）。 下面用 birt 的 `sim_rtirt()` 模擬一份小資料。 模擬資料是電腦依照已知的模型產生的假資料，好處是任何人都能得到同樣的數字。
+
+``` r
+dat <- sim_rtirt(N = 300, K = 5, seed = 2)
+dim(dat)
+```
+
+    [1] 300  12
+
+``` r
+head(round(dat, 2), 3)
+```
+
+      y1 y2 y3 y4 y5   t1   t2   t3   t4   t5    x1    x2
+    1  0  0  0  0  0 3.49 5.10 4.41 4.35 3.96 -0.90 -0.32
+    2  0  1  0  0  1 3.88 3.46 3.50 4.00 3.61  0.18 -0.32
+    3  0  0  0  1  1 4.12 4.04 3.57 3.65 3.75  1.59  0.88
+
+``` r
+round(colMeans(dat[, c("y1", "y2", "y3", "y4", "y5")]), 3)
+```
+
+       y1    y2    y3    y4    y5 
+    0.517 0.567 0.597 0.430 0.343 
+
+``` r
+round(exp(dat$t1[1:3]))
+```
+
+    [1] 33 49 62
+
+逐行說明：
+
+1.  模擬 300 人（`N`）、5 題（`K`）的資料，存成 `dat`。`seed = 2` 固定亂數，所以每次都得到同一份資料。
+2.  `dim()` 給資料的列數與欄數。
+3.  `round(dat, 2)` 先把數字四捨五入到小數兩位，比較好讀；`head(..., 3)` 只看前 3 列。
+4.  `dat[, c(...)]` 取出 5 個作答欄（逗號前面空白，表示所有的列）；`colMeans()` 算每一欄的平均數。0/1 資料的平均數就是**答對率**。
+5.  `dat$t1` 取出 `t1` 這一欄（`$` 用來取欄位）；`[1:3]` 取前 3 個人；`exp()` 把 log 時間換回秒數。
+
+輸出怎麼讀：
+
+- 資料有 300 列、12 欄。
+- `y1`–`y5`：每題答對（1）或答錯（0）。
+- `t1`–`t5`：每題的作答時間，已經取過自然對數（log）。作答時間通常右偏（少數人用很久），取 log 之後比較接近常態分配。log 時間 4 大約是 e⁴ ≈ 55 秒。
+- `x1`、`x2`：受試者的背景變項（**共變項**），例如年級或家庭背景。第 0 節不會用到它們。
+- 答對率：y5 只有 .343 的人答對，是最難的一題；y3 有 .597 的人答對，是最簡單的一題。
+- 前 3 個人在第 1 題分別用了約 33、49、62 秒。
+
+真實資料的欄名和這裡不同，時間也常是秒數而不是 log 秒數；1.7 節說明怎麼處理。 讀入自己的 CSV 檔可以用 `dat <- read.csv("檔名.csv")`。
+
+### 0.4 看懂錯誤訊息
+
+打錯字是最常見的錯誤。這時 R 會停下來，印出以 `Error` 開頭的訊息：
+
+``` r
+heda(dat)
+```
+
+    Error in heda(dat): could not find function "heda"
+
+``` r
+birt(rtirt_syntax(paste0("Y", 1:5), paste0("t", 1:5)), dat)
+```
+
+    Error in build_spec(model, data, binary, family, ordered, itemtype): variables in the model but not in `data`: Y1 (a typo for 'y1'?), Y2 (a typo for 'y2'?), Y3 (a typo for 'y3'?), Y4 (a typo for 'y4'?), Y5 (a typo for 'y5'?)
+
+逐行說明：
+
+1.  把 `head` 打成 `heda`。
+2.  把題目欄名 `y1`–`y5` 打成大寫的 `Y1`–`Y5`。R 分大小寫，`Y1` 和 `y1` 是不同的名字。
+
+輸出怎麼讀：
+
+- `Error in heda(dat)`：`Error in` 後面是出錯的那一個呼叫，冒號後面是原因。`could not find function "heda"` 表示沒有叫 `heda` 的函數：多半是打錯字，或是忘了用 `library()` 載入套件。
+- 第二個錯誤的 `Error in` 後面是 birt 內部的函數名稱，不必理會；重要的是冒號後面的原因：模型裡有 `Y1`–`Y5`，資料裡卻沒有這些欄位。括號裡的 `a typo for 'y1'?` 是在猜你想打的名字。birt 在估計之前就先檢查資料，所以這類錯誤馬上出現。
+- 看到錯誤時，先讀冒號後面的原因，再對照自己的程式。把錯誤訊息貼到搜尋引擎，通常也找得到解法。
+- 以 `Warning` 開頭的是**警告**：R 會繼續執行並給出結果，但提醒你可能有問題，要讀一下。
+
+### 0.5 IRT 是什麼：能力、難度、鑑別度
+
+**項目反應理論**（item response theory，IRT）用一個看不到的特質來解釋作答。 這種看不到的特質叫**潛在變項**；在成就測驗中就是**能力**（ability），寫成 θ（theta）。 能力不能直接觀察，只能從作答推估。 θ 的尺度通常設成平均 0、標準差 1：θ = 0 是平均能力，θ = 1 是比平均高一個標準差。
+
+每一題用一條曲線描述「能力為 θ 的人答對的機率」。 birt 對 0/1 題目用二參數 logistic 模型（2PL）：
+
+P(答對 \| θ) = 1 / (1 + exp(−a(θ − b)))
+
+- **難度 b**：答對機率剛好是 0.5 的能力。b 越大，題目越難。
+- **鑑別度 a**：曲線在 b 附近有多陡。a 越大，這一題越能分辨能力略高與略低的人。
+
+``` r
+theta <- seq(-3, 3, by = 0.1)
+p_easy <- plogis(1 * (theta - (-1)))
+p_hard <- plogis(2 * (theta - 1))
+plot(theta, p_easy, type = "l", ylim = c(0, 1), xlab = "ability (theta)", ylab = "P(correct)")
+lines(theta, p_hard, lty = 2)
+abline(h = 0.5, col = "gray")
+legend("topleft", c("easy item: a = 1, b = -1", "hard item: a = 2, b = 1"), lty = 1:2, bty = "n")
+```
+
+![](birt_tutorial_files/figure-commonmark/beginner-icc-1.png)
+
+逐行說明：
+
+1.  能力從 −3 到 3，每隔 0.1 取一個值。
+2.  `plogis()` 是 logistic 函數 1 / (1 + exp(−x))。簡單題：a = 1，b = −1。
+3.  難題：a = 2，b = 1。
+4.  畫出簡單題的曲線（`type = "l"` 表示畫線）。
+5.  加上難題的曲線（`lty = 2` 是虛線）。
+6.  在答對機率 0.5 的位置畫一條灰線。
+7.  加上圖例。
+
+輸出怎麼讀：
+
+- 兩條曲線都往右上升：能力越高，答對機率越高。
+- 實線在 θ = −1 穿過灰線，所以這一題的難度是 −1；虛線在 θ = 1 穿過灰線，難度是 1。
+- 虛線比較陡（a = 2）：能力從 0.5 到 1.5，答對機率從約 .27 升到 .73。這一題很能分辨這一段能力的人；但能力在 −2 附近的人幾乎都答錯，這一題分辨不出他們。
+
+IRT 模型從所有人的作答，同時估計每一題的 a、b 與每個人的 θ。
+
+### 0.6 為什麼要看作答時間
+
+電腦化測驗會記錄每一題花了多久。作答時間帶來兩種新的訊息：
+
+- **速度**（speed）：每個人做題快慢的傾向，也是一個潛在變項。速度越高，作答時間越短。
+- **時間強度**（time intensity）：每一題平均要花多久。題目越長、越複雜，時間強度越高。
+
+van der Linden（2007）的階層模型把兩部分放在一起：作答用 IRT 連到能力，log 作答時間用常態分配連到速度，再估計能力與速度的相關。 這樣做有三個好處：
+
+- 可以回答「能力高的人做得比較快，還是比較慢」。
+- 能力與速度相關時，作答時間也帶有能力的訊息，能力的估計會更準一點。
+- 可以找出不尋常的作答，例如短到不像有讀題的時間（猜題）。
+
+birt 用 lavaan 風格的語法寫這個模型；下一節的 `rtirt_syntax()` 會幫你寫好語法。
+
+### 0.7 第一個完整分析
+
+下面 13 行就是一次完整的分析：準備資料、寫模型、配適、看結果。
+
+``` r
+library(birt)
+dat <- sim_rtirt(N = 300, K = 5, seed = 2)
+items <- paste0("y", 1:5)
+times <- paste0("t", 1:5)
+model <- rtirt_syntax(items, times)
+cat(model)
+```
+
+    ability =~ y1 + y2 + y3 + y4 + y5
+    speed =~ -1*t1 + -1*t2 + -1*t3 + -1*t4 + -1*t5
+    ability ~~ speed
+
+``` r
+fit0 <- birt(model, data = dat)
+fit0
+```
+
+    birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
+      300 persons; latent variables: ability, speed
+      Distributions: ability: normal; speed: normal; 5 continuous: normal (5); 5 binary: logit
+      Approximate Bayes (ELGM; W = person latents): 22 parameters; 12 s
+        inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 20 directions (81 nodes)
+      log marginal likelihood -2355.50; -2logL at the posterior mode 4560.6
+      Reliability: ability 0.567, speed 0.654
+    Use summary() for the parameter table, scores() for the person scores and plot() for a plot of them.
+
+``` r
+s <- summary(fit0)
+s$items
+```
+
+    item parameters (posterior means); binary items also as IRT a, b = -d / a 
+    item  type        ability   speed  intercept  resid_var      a       b
+    y1    binary        1.900              0.123             1.900  -0.065
+    y2    binary        0.834              0.311             0.834  -0.373
+    y3    binary        0.738              0.440             0.738  -0.596
+    y4    binary        1.377             -0.374             1.377   0.271
+    y5    binary        0.898             -0.754             0.898   0.840
+    t1    continuous           -1.000      4.173      0.235
+    t2    continuous           -1.000      4.007      0.398
+    t3    continuous           -1.000      3.873      0.286
+    t4    continuous           -1.000      3.844      0.339
+    t5    continuous           -1.000      3.788      0.172
+
+``` r
+s$parameters
+```
+
+    approximate posterior (ELGM): mean, SD and 95% interval; prior of each parameter 
+
+    Latent Variables:
+                        Estimate  Post.SD  pi.lower  pi.upper  Prior
+      ability =~
+        y1                 1.900    0.522     1.110     3.254  hier(ability)
+        y2                 0.834    0.208     0.512     1.361  hier(ability)
+        y3                 0.738    0.198     0.436     1.248  hier(ability)
+        y4                 1.377    0.320     0.873     2.173  hier(ability)
+        y5                 0.898    0.220     0.556     1.450  hier(ability)
+      speed =~
+        t1                -1.000
+        t2                -1.000
+        t3                -1.000
+        t4                -1.000
+        t5                -1.000
+
+    Covariances (correlations):
+                        Estimate  Post.SD  pi.lower  pi.upper  Prior
+      ability ~~
+        speed              0.239    0.096     0.049     0.423  dunif(-1, 1)
+
+    Variances:
+                        Estimate  Post.SD  pi.lower  pi.upper  Prior
+        ability            1.000
+        speed              0.099    0.013     0.076     0.126  on SD: dt(0, 1, 3) T(0,)
+        t1                 0.235    0.023     0.194     0.283  on SD: dt(0, 1, 3) T(0,)
+        t2                 0.398    0.036     0.334     0.475  on SD: dt(0, 1, 3) T(0,)
+        t3                 0.286    0.027     0.238     0.343  on SD: dt(0, 1, 3) T(0,)
+        t4                 0.339    0.031     0.283     0.406  on SD: dt(0, 1, 3) T(0,)
+        t5                 0.172    0.018     0.140     0.210  on SD: dt(0, 1, 3) T(0,)
+
+    Intercepts:
+                        Estimate  Post.SD  pi.lower  pi.upper  Prior
+        y1                 0.123    0.187    -0.243     0.489  dnorm(0, 1/9)
+        y2                 0.311    0.135     0.046     0.576  dnorm(0, 1/9)
+        y3                 0.440    0.134     0.178     0.702  dnorm(0, 1/9)
+        y4                -0.374    0.161    -0.690    -0.057  dnorm(0, 1/9)
+        y5                -0.754    0.148    -1.045    -0.464  dnorm(0, 1/9)
+        t1                 4.173    0.033     4.107     4.238  dnorm(0, 1/100)
+        t2                 4.007    0.041     3.927     4.087  dnorm(0, 1/100)
+        t3                 3.873    0.036     3.803     3.943  dnorm(0, 1/100)
+        t4                 3.844    0.038     3.769     3.919  dnorm(0, 1/100)
+        t5                 3.788    0.030     3.729     3.847  dnorm(0, 1/100)
+
+    Approximate Bayes (ELGM): posterior SDs and 95% credible intervals, no p-values. For p-values and AIC / BIC, fit by maximum likelihood: birt(..., control = rtmb_control(method = "ml"))
+
+``` r
+head(scores(fit0), 3)
+```
+
+    # A tibble: 3 × 5
+    id  ability  ability_psd   speed  speed_psd
+     1   -1.247        0.716  -0.173      0.185
+     2   -0.367        0.633   0.139      0.184
+     3   -0.179        0.624   0.063      0.184
+
+``` r
+reliability(fit0)
+```
+
+    ability   speed 
+      0.567   0.654 
+
+逐行說明：
+
+1.  載入 birt（已經載入過，再跑一次也沒關係）。
+2.  和 0.3 相同的資料。
+3.  `paste0("y", 1:5)` 把 `"y"` 和 1 到 5 接起來，得到 `"y1"`、…、`"y5"`：作答題的欄名。
+4.  作答時間的欄名 `"t1"`–`"t5"`。
+5.  `rtirt_syntax()` 依欄名寫出 van der Linden 模型的語法，存成文字 `model`。
+6.  `cat()` 把語法印出來。
+7.  `birt()` 配適模型，結果存成 `fit0`。在這台電腦上大約 10 秒。
+8.  印出簡短的概覽。
+9.  `summary()` 算出所有表格，存成 `s`。
+10. `s$items`：每題一列的題目參數。
+11. `s$parameters`：完整的參數表。
+12. 前 3 個人的能力與速度分數。
+13. 能力與速度分數的信度。
+
+輸出怎麼讀：
+
+- **模型語法（第 6 行）：**
+  - `ability =~ y1 + ...`：能力由 5 題的作答測量。`=~` 讀作「由……測量」。
+  - `speed =~ -1*t1 + ...`：速度由 5 個 log 時間測量。`-1*` 把負荷量固定為 −1，所以速度越高，時間越短。
+  - `ability ~~ speed`：估計能力與速度的相關。
+- **概覽（第 8 行）：** 前幾行說明模型與估計方法，第一次讀可以略過（1.3 節逐行解釋）。`Reliability` 那一行的數字和第 13 行相同。
+- **`s$items`：** 看二元題（`binary`）那幾列的 `a`（鑑別度）與 `b`（難度）。
+  - y5 的 `b` = 0.840 最大，是最難的一題；y3 的 `b` = −0.596 最小，是最簡單的一題。這和 0.3 的答對率一致。
+  - y1 的 `a` = 1.900 最大，最能分辨能力的高低。
+  - 時間題（`continuous`）那幾列：`intercept` 是時間強度（平均 log 時間）；`speed` 欄的 −1 是固定的負荷量。
+- **`s$parameters`：** 找 `Covariances (correlations)` 段的 `ability ~~ speed`。
+  - birt 預設用貝氏方法估計：看過資料之後，參數可能的值用一個分配描述，叫**後驗分配**。`Estimate` 是它的平均數，`Post.SD` 是它的標準差，`pi.lower` 與 `pi.upper` 是它中間 95% 的範圍（95% **可信區間**）。
+  - 相關的 `Estimate` 是 0.239，95% 可信區間是 \[0.049, 0.423\]：能力較高的人，作答也稍快。區間不包含 0，所以資料支持相關不是 0。
+  - 這份模擬資料其實是「偶數題上能力高的人做得快」，簡單的相關模型把它吸收成相關。第 1 節與第 4 節會看到更合適的模型。
+  - `Prior` 欄是**先驗**：看資料之前對參數的假設，第 2 節說明。
+- **`scores()`：** 每人一列。
+  - `ability`、`speed` 是 **EAP 分數**：每個人潛在變項的後驗平均數。
+  - `ability_psd`、`speed_psd` 是後驗標準差，表示分數的不確定性。
+  - 第 1 個人的能力約 −1.247，後驗標準差約 0.716：只有 5 題，個人分數的不確定性很大。
+- **`reliability()`：** **信度**介於 0 與 1 之間，越接近 1，分數越能分辨不同的人。能力是 0.567，速度是 0.654。只有 5 題，所以能力的信度不高；第 1 節用 10 題，能力的信度是 .760。
+
+### 0.8 接下來讀哪裡
+
+- **第 1 節**用 500 人、10 題的資料，把同樣的步驟再做一次，逐項解釋 `print()` 與 `summary()` 的每一塊輸出。
+- **第 2 節**說明語法規則與先驗；**第 3 節**說明怎麼從結果物件取出表格。
+- 想回答特定問題（例如哪個模型比較好、題目有沒有 DIF），查本文開頭的「我想知道……該用什麼」表。
+- 後文的統計名詞（ELGM、AGHQ、邊際概似等）第一次出現時都會解釋，也可以查 0.9 的名詞表。
+
+### 0.9 名詞表
+
+下面的名詞在後文第一次出現時也會再解釋。第一次讀可以先跳過，用到時再回來查。
 
 | 名詞 | 意思 |
 |----|----|
+| IRT（項目反應理論） | 用潛在變項解釋作答的模型。0/1 題目在 birt 用 2PL：P(答對 \| θ) = 1 / (1 + exp(−a(θ − b)))（0.5 節）。 |
+| 難度 b、鑑別度 a | b 是答對機率 0.5 的能力，越大越難；a 是曲線的陡度，越大越能分辨能力高低。`summary()` 的 `$items` 給每題的 a、b。 |
+| 速度、時間強度 | 速度是每個人做題快慢的潛在變項；時間強度是每一題的平均 log 時間（0.6 節）。 |
 | 潛在變項 | 無法直接觀察的特質，例如能力（ability）與速度（speed）。每個受試者 j 有自己的值 θ_j。 |
 | 條件概似（conditional likelihood） | 把每個人的潛在變項值當成已知時，資料的機率 p(y \| θ, ψ)。ψ 是題目參數等其他參數。 |
 | 邊際概似 L(ψ)（marginal likelihood） | 把每個人的潛在變項積分掉之後的資料機率 ∫ p(y \| θ, ψ) p(θ \| ψ) dθ。它只是 ψ 的函數。輸出中的 `logLik`、`-2logL` 都指它。 |
@@ -98,18 +496,6 @@ install.packages("R2jags")
 | Bayes factor（BF） | 兩個模型 p(y) 的比值。BF = 10 表示資料在模型 A 下的機率是模型 B 的 10 倍。 |
 | EAP | 後驗期望值（expected a posteriori），每個人潛在變項的後驗平均數。`scores()` 給 EAP 與後驗 SD（PSD）。 |
 | 信度 | birt 的 EAP 信度 = var(EAP) / (var(EAP) + mean PSD²)。 |
-
-``` r
-library(birt)
-```
-
-逐行說明：
-
-1.  載入 birt。RTMB 引擎在需要時自動載入，不必另外 `library(RTMB)`。
-
-輸出怎麼讀：
-
-- 沒有輸出代表載入成功。
 
 ## 1. 快速開始：第一個 ELGM 模型
 
@@ -177,7 +563,7 @@ fit
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 28 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
       Reliability: ability 0.760, speed 0.861
@@ -215,13 +601,13 @@ summary(fit)
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 28 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
     $fit  log marginal likelihood (ELGM)
       N  method                                             npar      logML  logLik_mode  Deviance_mode  nodes  ESS_nodes
-    500  ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer    42  -6883.730    -6724.339      13448.677     81     11.989
+    500  ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer    42  -6883.730    -6724.339      13448.677     81         12
 
     $items  item parameters (posterior means); binary items also as IRT a, b = -d / a
     item  type        ability   speed  intercept  resid_var      a       b
@@ -370,18 +756,17 @@ head(scores(fit), 3)
 ```
 
     # A tibble: 3 × 5
-         id ability ability_psd speed speed_psd
-      <int>   <dbl>       <dbl> <dbl>     <dbl>
-    1     1   0.896       0.473 0.474     0.137
-    2     2   1.82        0.600 0.209     0.138
-    3     3  -0.423       0.462 0.169     0.137
+    id  ability  ability_psd  speed  speed_psd
+     1    0.896        0.473  0.474      0.137
+     2    1.823        0.600  0.209      0.138
+     3   -0.423        0.462  0.169      0.137
 
 ``` r
 reliability(fit)
 ```
 
-     ability    speed 
-    0.760325 0.861471 
+    ability   speed 
+      0.760   0.861 
 
 逐行說明：
 
@@ -696,13 +1081,13 @@ print(s, tables = "fit")
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 28 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
     $fit  log marginal likelihood (ELGM)
       N  method                                             npar      logML  logLik_mode  Deviance_mode  nodes  ESS_nodes
-    500  ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer    42  -6883.730    -6724.339      13448.677     81     11.989
+    500  ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer    42  -6883.730    -6724.339      13448.677     81         12
 
 逐行說明：
 
@@ -715,6 +1100,7 @@ print(s, tables = "fit")
 
 - `names(s)`：`header`、`fit`、`items`、`se`、`parameters`、`moderation`、`precision`、`reliability`。`moderation` 與 `precision` 只有順序題模型才有內容（第 8 節）。
 - 長表的欄位：`lhs`、`op`、`rhs` 是 lavaan 式的參數名；`est` 是後驗平均數；`se` 在 ELGM 下是後驗 SD；`lower`、`upper` 是 95% 可信區間；`prior` 是先驗；`fixed` 標出固定參數。長表可以直接 `write.csv()`。
+- `as.data.frame()` 給的是一般的資料框，所以 R 用它自己的方式印出完整的位數；birt 自己的表（`summary()`、`estimates()` 等）只印到小數三位，數值本身是一樣的。
 - `tables = "fit"` 只印出開頭的模型說明（header）與 `$fit` 表，其他表都省略。
 
 同一個量在不同輸出裡的欄名：
@@ -751,9 +1137,8 @@ e[e$op == "~~" & e$lhs != e$rhs, ]
 ```
 
     # A tibble: 1 × 8
-      lhs     op    rhs   prior          est     se lower upper
-      <chr>   <chr> <chr> <chr>        <dbl>  <dbl> <dbl> <dbl>
-    1 ability ~~    speed dunif(-1, 1) 0.424 0.0485 0.326 0.515
+    lhs      op  rhs    prior           est     se  lower  upper
+    ability  ~~  speed  dunif(-1, 1)  0.424  0.048  0.326  0.515
 
 逐行說明：
 
@@ -911,7 +1296,7 @@ convergence(fit)
 ```
 
     method                                             nlminb_code  max_abs_gradient  se_available
-    ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer            0            0.0009        1.0000
+    ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer            0             0.001         1.000
     ELGM outer quadrature: 81 nodes, effective 12.0; largest mass on the two outermost nodes of a direction 0.000 (Gaussian: 0.000); max log posterior above the mode 0.000
     (the inner rounds below find the posterior mode: -2 log posterior = -2logL - 2 log prior, up to a constant; the header gives -2logL at the mode)
     AGHQ rounds (-2 log posterior): 13608.506, 13608.261, 13608.261
@@ -972,9 +1357,9 @@ fi <- birt(m_ind, d)
 compare(correlated = fit, cross = fc, independent = fi)
 ```
 
-    model        method                                              npar      logML    dlogML  BF_best
+    model        method                                              npar      logML    dlogML   BF_best
     correlated   ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer     42  -6883.730  -150.684  2.76e+65
-    cross        ELGM: AGHQ (k = 9) inner, AGHQ (k = 11) on 1 outer    51  -6733.046     0.000     1
+    cross        ELGM: AGHQ (k = 9) inner, AGHQ (k = 11) on 1 outer    51  -6733.046     0.000     1.000
     independent  ELGM: AGHQ (k = 9) inner, AGHQ (k = 11) on 1 outer    41  -6910.906  -177.860  1.75e+77
     BF_best: Bayes factor of the best model against each model (marginal likelihoods depend on the priors).
 
@@ -1030,11 +1415,10 @@ e[e$op == "~", ]
 ```
 
     # A tibble: 3 × 8
-      lhs   op    rhs     prior           est     se   lower  upper
-      <chr> <chr> <chr>   <chr>         <dbl>  <dbl>   <dbl>  <dbl>
-    1 speed ~     ability dnorm(0, 1) 0.156   0.0193  0.119  0.194 
-    2 speed ~     x1      dnorm(0, 1) 0.109   0.0158  0.0782 0.140 
-    3 speed ~     x2      dnorm(0, 1) 0.00900 0.0152 -0.0208 0.0388
+    lhs    op  rhs      prior          est     se   lower  upper
+    speed  ~   ability  dnorm(0, 1)  0.156  0.019   0.119  0.194
+    speed  ~   x1       dnorm(0, 1)  0.109  0.016   0.078  0.140
+    speed  ~   x2       dnorm(0, 1)  0.009  0.015  -0.021  0.039
 
 逐行說明：
 
@@ -1086,7 +1470,7 @@ r_s
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 38 s
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 45 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on skew(speed), log tail(speed), Gaussian in 44 directions (81 nodes)
       log marginal likelihood -6872.74; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863
@@ -1118,7 +1502,7 @@ r_s
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 61 s
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 72 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 13 on skew(speed), log tail(speed), Gaussian in 44 directions (169 nodes)
       log marginal likelihood -6872.71; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863
@@ -1142,19 +1526,18 @@ e[e$lhs == "speed" & e$op %in% c("sd", "skew", "tail"), ]
 ```
 
     # A tibble: 3 × 8
-      lhs   op    rhs   prior               est     se  lower upper
-      <chr> <chr> <chr> <chr>             <dbl>  <dbl>  <dbl> <dbl>
-    1 speed sd    ""    dt(0, 1, 3) T(0,) 0.353 0.0259  0.299 0.401
-    2 speed skew  ""    dnorm(0, 1)       0.105 0.234  -0.289 0.630
-    3 speed tail  ""    dlnorm(0, 4)      1.55  0.500   0.916 2.83 
+    lhs    op    rhs  prior                est     se   lower  upper
+    speed  sd         dt(0, 1, 3) T(0,)  0.353  0.026   0.299  0.401
+    speed  skew       dnorm(0, 1)        0.105  0.234  -0.289  0.630
+    speed  tail       dlnorm(0, 4)       1.546  0.500   0.916  2.832
 
 ``` r
 compare(normal = fr, shash = r_s)
 ```
 
     model   method                                              npar      logML  dlogML  BF_best
-    normal  ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer     44  -6870.498   0.000     1
-    shash   ELGM: AGHQ (k = 9) inner, AGHQ (k = 13) on 2 outer    46  -6872.706  -2.208  9.09
+    normal  ELGM: AGHQ (k = 9) inner, AGHQ (k = 9) on 2 outer     44  -6870.498   0.000    1.000
+    shash   ELGM: AGHQ (k = 9) inner, AGHQ (k = 13) on 2 outer    46  -6872.706  -2.208    9.094
     BF_best: Bayes factor of the best model against each model (marginal likelihoods depend on the priors).
 
 逐行說明：
@@ -1177,16 +1560,17 @@ q <- quantiles(r_s, p = c(0.1, 0.5, 0.9))
 q[q$target == "speed", c("predictor", "p", "est", "se", "ci.lower", "ci.upper")]
 ```
 
-      predictor   p        est         se    ci.lower   ci.upper
-    1   ability 0.1 0.15453674 0.01905196  0.11720072 0.19188304
-    2        x1 0.1 0.10670739 0.01582634  0.07569110 0.13772922
-    3        x2 0.1 0.01027056 0.01514014 -0.01940312 0.03994513
-    4   ability 0.5 0.15453674 0.01905196  0.11720072 0.19188304
-    5        x1 0.5 0.10670739 0.01582634  0.07569110 0.13772922
-    6        x2 0.5 0.01027056 0.01514014 -0.01940312 0.03994513
-    7   ability 0.9 0.15453674 0.01905196  0.11720072 0.19188304
-    8        x1 0.9 0.10670739 0.01582634  0.07569110 0.13772922
-    9        x2 0.9 0.01027056 0.01514014 -0.01940312 0.03994513
+    # A data frame: 9 × 6
+    predictor      p    est     se  ci.lower  ci.upper
+    ability    0.100  0.155  0.019     0.117     0.192
+    x1         0.100  0.107  0.016     0.076     0.138
+    x2         0.100  0.010  0.015    -0.019     0.040
+    ability    0.500  0.155  0.019     0.117     0.192
+    x1         0.500  0.107  0.016     0.076     0.138
+    x2         0.500  0.010  0.015    -0.019     0.040
+    ability    0.900  0.155  0.019     0.117     0.192
+    x1         0.900  0.107  0.016     0.076     0.138
+    x2         0.900  0.010  0.015    -0.019     0.040
 
 逐行說明：
 
@@ -1228,7 +1612,7 @@ f5
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (log sd ~ ability) (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 61 parameters; 20 s
+      Approximate Bayes (ELGM; W = person latents): 61 parameters; 25 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 11 on log sd(speed), Gaussian in 60 directions (11 nodes)
       log marginal likelihood -6762.95; -2logL at the posterior mode 13071.3
       Reliability: ability 0.811, speed 0.823
@@ -1254,20 +1638,22 @@ q5 <- quantiles(f5, p = c(0.1, 0.5, 0.9))
 head(q5[q5$predictor == "ability", ], 6)
 ```
 
-       target predictor   p          est         se    ci.lower    ci.upper
-    2      t1   ability 0.1 -0.006430332 0.03572994 -0.07646127  0.06359751
-    4      t1   ability 0.5 -0.018693596 0.02886734 -0.07527482  0.03788306
-    6      t1   ability 0.9 -0.030956860 0.03762868 -0.10470900  0.04279270
-    8      t2   ability 0.1 -0.260946123 0.03428748 -0.32814902 -0.19374457
-    10     t2   ability 0.5 -0.282840611 0.02727954 -0.33630844 -0.22937462
-    12     t2   ability 0.9 -0.304735100 0.03420170 -0.37176969 -0.23770150
-        band.lower  band.upper
-    2  -0.08818395  0.07532328
-    4  -0.08474491  0.04735771
-    6  -0.11705498  0.05514126
-    8  -0.33923730 -0.18265495
-    10 -0.34513003 -0.22055120
-    12 -0.38283040 -0.22663980
+    # A data frame: 6 × 9
+    target  predictor      p     est     se  ci.lower  ci.upper  band.lower
+    t1      ability    0.100  -0.006  0.036    -0.076     0.064      -0.088
+    t1      ability    0.500  -0.019  0.029    -0.075     0.038      -0.085
+    t1      ability    0.900  -0.031  0.038    -0.105     0.043      -0.117
+    t2      ability    0.100  -0.261  0.034    -0.328    -0.194      -0.339
+    t2      ability    0.500  -0.283  0.027    -0.336    -0.229      -0.345
+    t2      ability    0.900  -0.305  0.034    -0.372    -0.238      -0.383
+
+    band.upper
+         0.075
+         0.047
+         0.055
+        -0.183
+        -0.221
+        -0.227
 
 逐行說明：
 
@@ -1344,7 +1730,7 @@ quantile_test(f5, p = c(0.1, 0.5, 0.9))
     t5      ability    0.900  -0.026  0.021  -1.221    0.222
     t6      ability    0.100   0.006  0.025   0.240    0.810
     t6      ability    0.900  -0.006  0.025  -0.240    0.810
-    t7      ability    0.100  -0.000  0.021  -0.023    0.981
+    t7      ability    0.100   0.000  0.021  -0.023    0.981
     t7      ability    0.900   0.000  0.021   0.023    0.981
     t8      ability    0.100  -0.004  0.021  -0.218    0.828
     t8      ability    0.900   0.004  0.021   0.218    0.828
@@ -1396,33 +1782,33 @@ cr5
 ```
 
     Conditional reliability of ability (accuracy + RT, accuracy only, RT only)
-     theta   rel se_rel rel_acc rel_rt info
-      -3.0 0.608 0.0262   0.233  0.556 1.55
-      -2.5 0.640 0.0213   0.344  0.556 1.78
-      -2.0 0.682 0.0169   0.473  0.556 2.15
-      -1.5 0.734 0.0139   0.601  0.556 2.76
-      -1.0 0.787 0.0122   0.709  0.557 3.69
-      -0.5 0.830 0.0119   0.783  0.558 4.87
-       0.0 0.851 0.0120   0.816  0.559 5.71
-       0.5 0.846 0.0118   0.809  0.560 5.50
-       1.0 0.816 0.0113   0.759  0.562 4.43
-       1.5 0.768 0.0123   0.669  0.563 3.31
-       2.0 0.718 0.0156   0.556  0.565 2.55
-       2.5 0.678 0.0191   0.444  0.568 2.11
-       3.0 0.649 0.0225   0.344  0.570 1.85
+     theta    rel  se_rel  rel_acc  rel_rt   info
+    -3.000  0.608   0.026    0.233   0.556  1.554
+    -2.500  0.640   0.021    0.344   0.556  1.775
+    -2.000  0.682   0.017    0.473   0.556  2.148
+    -1.500  0.734   0.014    0.601   0.556  2.757
+    -1.000  0.787   0.012    0.709   0.557  3.692
+    -0.500  0.830   0.012    0.783   0.558  4.872
+     0.000  0.851   0.012    0.816   0.559  5.710
+     0.500  0.846   0.012    0.809   0.560  5.500
+     1.000  0.816   0.011    0.759   0.562  4.429
+     1.500  0.768   0.012    0.669   0.563  3.308
+     2.000  0.718   0.016    0.556   0.565  2.552
+     2.500  0.678   0.019    0.444   0.568  2.110
+     3.000  0.649   0.022    0.344   0.570  1.849
 
     Check: persons binned by EAP, 1 - PSD^2 / var (AGHQ) against the curve
-      theta rel_empirical  n rel_model
-     -1.526         0.737 50     0.731
-     -0.966         0.789 50     0.790
-     -0.671         0.813 50     0.817
-     -0.369         0.831 50     0.838
-     -0.115         0.840 50     0.848
-      0.108         0.845 50     0.852
-      0.326         0.843 50     0.851
-      0.634         0.834 50     0.840
-      1.008         0.812 50     0.815
-      1.561         0.762 50     0.762
+     theta  rel_empirical   n  rel_model
+    -1.526          0.737  50      0.731
+    -0.966          0.789  50      0.790
+    -0.671          0.813  50      0.817
+    -0.369          0.831  50      0.838
+    -0.115          0.840  50      0.848
+     0.108          0.845  50      0.852
+     0.326          0.843  50      0.851
+     0.634          0.834  50      0.840
+     1.008          0.812  50      0.815
+     1.561          0.762  50      0.762
 
 逐行說明：
 
@@ -1525,10 +1911,11 @@ it5 <- qi5$items
 it5[it5$theta == 0 & it5$item == "t2" & it5$p %in% c(0.1, 0.5, 0.9), ]
 ```
 
-        theta item   p        q       beta   density      info
-    35      0   t2 0.1 3.302726 -0.2609086 0.4385254 0.1454534
-    275     0   t2 0.5 3.815605 -0.2827866 0.9968546 0.3178639
-    515     0   t2 0.9 4.328483 -0.3046645 0.4385254 0.1983311
+    # A data frame: 3 × 7
+    theta  item      p      q    beta  density   info
+    0.000  t2    0.100  3.303  -0.261    0.439  0.145
+    0.000  t2    0.500  3.816  -0.283    0.997  0.318
+    0.000  t2    0.900  4.328  -0.305    0.439  0.198
 
 逐行說明：
 
@@ -1555,21 +1942,23 @@ qv <- quantile_information(fv, theta = c(-1, 0, 1))
 qv$best
 ```
 
-      theta    p      info efficiency
-    1    -1 0.05 0.2093549  0.2133835
-    2     0 0.05 0.2454036  0.2501535
-    3     1 0.05 0.2699863  0.2752392
+    # A data frame: 3 × 4
+     theta      p   info  efficiency
+    -1.000  0.050  0.209       0.213
+     0.000  0.050  0.245       0.250
+     1.000  0.050  0.270       0.275
 
 ``` r
 qv$curve[qv$curve$theta == 0 & qv$curve$p %in% c(0.05, 0.25, 0.5, 0.75, 0.95), ]
 ```
 
-       theta    p        info   info_rt  efficiency
-    2      0 0.05 0.245403627 0.9810121 0.250153526
-    14     0 0.25 0.090164048 0.9810121 0.091909214
-    29     0 0.50 0.001302308 0.9810121 0.001327515
-    44     0 0.75 0.069597089 0.9810121 0.070944172
-    56     0 0.95 0.211503414 0.9810121 0.215597159
+    # A data frame: 5 × 5
+    theta      p   info  info_rt  efficiency
+    0.000  0.050  0.245    0.981       0.250
+    0.000  0.250  0.090    0.981       0.092
+    0.000  0.500  0.001    0.981       0.001
+    0.000  0.750  0.070    0.981       0.071
+    0.000  0.950  0.212    0.981       0.216
 
 逐行說明：
 
@@ -1622,39 +2011,39 @@ ri
 
     Information of the response times about ability by quantile level of the RT (speed projected out)
 
-             band % at ability = -2 % at ability = 0 % at ability = 2
-     (0.00, 0.05]              22.7             22.4             22.2
-     (0.05, 0.10]              10.5             10.5             10.4
-     (0.10, 0.25]              13.7             13.7             13.7
-     (0.25, 0.50]               3.6              3.6              3.6
-     (0.50, 0.75]               3.7              3.7              3.7
-     (0.75, 0.90]              13.7             13.7             13.7
-     (0.90, 0.95]              10.3             10.4             10.4
-     (0.95, 1.00]              21.7             21.9             22.1
+    band          % at ability = -2  % at ability = 0  % at ability = 2
+    (0.00, 0.05]               22.7              22.4              22.2
+    (0.05, 0.10]               10.5              10.5              10.4
+    (0.10, 0.25]               13.7              13.7              13.7
+    (0.25, 0.50]                3.6               3.6               3.6
+    (0.50, 0.75]                3.7               3.7               3.7
+    (0.75, 0.90]               13.7              13.7              13.7
+    (0.90, 0.95]               10.3              10.4              10.4
+    (0.95, 1.00]               21.7              21.9              22.1
 
     Censoring beyond a limit (slow: time limit at the item's quantile u; fast: faster than u known only as fast)
-     theta side    u info_rt  kept   rel rel_full
-        -2 slow 0.75   1.184 0.946 0.675    0.682
-         0 slow 0.75   1.197 0.944 0.849    0.851
-         2 slow 0.75   1.227 0.943 0.712    0.718
-        -2 slow 0.90   1.232 0.984 0.680    0.682
-         0 slow 0.90   1.247 0.984 0.851    0.851
-         2 slow 0.90   1.279 0.983 0.717    0.718
-        -2 slow 0.95   1.243 0.993 0.682    0.682
-         0 slow 0.95   1.258 0.993 0.851    0.851
-         2 slow 0.95   1.292 0.993 0.718    0.718
-        -2 slow 0.99   1.250 0.999 0.682    0.682
-         0 slow 0.99   1.266 0.999 0.851    0.851
-         2 slow 0.99   1.299 0.999 0.718    0.718
-        -2 fast 0.01   1.250 0.999 0.682    0.682
-         0 fast 0.01   1.266 0.999 0.851    0.851
-         2 fast 0.01   1.299 0.999 0.718    0.718
-        -2 fast 0.05   1.242 0.993 0.681    0.682
-         0 fast 0.05   1.258 0.993 0.851    0.851
-         2 fast 0.05   1.292 0.993 0.718    0.718
-        -2 fast 0.10   1.230 0.983 0.680    0.682
-         0 fast 0.10   1.246 0.983 0.850    0.851
-         2 fast 0.10   1.279 0.983 0.717    0.718
+     theta  side      u  info_rt   kept    rel  rel_full
+    -2.000  slow  0.750    1.184  0.946  0.675     0.682
+     0.000  slow  0.750    1.197  0.944  0.849     0.851
+     2.000  slow  0.750    1.227  0.943  0.712     0.718
+    -2.000  slow  0.900    1.232  0.984  0.680     0.682
+     0.000  slow  0.900    1.247  0.984  0.851     0.851
+     2.000  slow  0.900    1.279  0.983  0.717     0.718
+    -2.000  slow  0.950    1.243  0.993  0.682     0.682
+     0.000  slow  0.950    1.258  0.993  0.851     0.851
+     2.000  slow  0.950    1.292  0.993  0.718     0.718
+    -2.000  slow  0.990    1.250  0.999  0.682     0.682
+     0.000  slow  0.990    1.266  0.999  0.851     0.851
+     2.000  slow  0.990    1.299  0.999  0.718     0.718
+    -2.000  fast  0.010    1.250  0.999  0.682     0.682
+     0.000  fast  0.010    1.266  0.999  0.851     0.851
+     2.000  fast  0.010    1.299  0.999  0.718     0.718
+    -2.000  fast  0.050    1.242  0.993  0.681     0.682
+     0.000  fast  0.050    1.258  0.993  0.851     0.851
+     2.000  fast  0.050    1.292  0.993  0.718     0.718
+    -2.000  fast  0.100    1.230  0.983  0.680     0.682
+     0.000  fast  0.100    1.246  0.983  0.850     0.851
+     2.000  fast  0.100    1.279  0.983  0.717     0.718
 
 逐行說明：
 
@@ -1771,18 +2160,18 @@ score_test(ml_cor, d$x1 > 0, by_item = TRUE, impact_check = FALSE)
 ```
 
     Score-based test of parameter invariance (LM test, factor with 2 levels moderator, block decorrelation)
-      parameters  n statistic p.value p.holm
-     measurement 20    23.186  0.2797       
-              y1  2     0.962  0.6181  1.000
-              y2  2     5.812  0.0547  0.547
-              y3  2     0.983  0.6116  1.000
-              y4  2     0.347  0.8408  1.000
-              y5  2     3.913  0.1414  1.000
-              y6  2     3.677  0.1591  1.000
-              y7  2     3.446  0.1786  1.000
-              y8  2     2.672  0.2629  1.000
-              y9  2     1.323  0.5160  1.000
-             y10  2     0.844  0.6558  1.000
+    parameters    n  statistic  p.value  p.holm
+    measurement  20     23.186    0.280
+    y1            2      0.962    0.618   1.000
+    y2            2      5.812    0.055   0.547
+    y3            2      0.983    0.612   1.000
+    y4            2      0.347    0.841   1.000
+    y5            2      3.913    0.141   1.000
+    y6            2      3.677    0.159   1.000
+    y7            2      3.446    0.179   1.000
+    y8            2      2.672    0.263   1.000
+    y9            2      1.323    0.516   1.000
+    y10           2      0.844    0.656   1.000
 
 逐行說明：
 
@@ -1803,8 +2192,8 @@ score_test(ml_cor, rowSums(d[times]))
     the moderator correlates -0.99 with the scores of speed: differences in its mean (impact) shift every intercept; to test DIF beyond impact, add the moderator to the latent regression (speed ~ z, or E(speed) ~ z) and test that fit
 
     Score-based test of parameter invariance (DM test, numeric moderator, block decorrelation)
-      parameters  n statistic p.value
-     measurement 20     1.492   0.376
+    parameters    n  statistic  p.value
+    measurement  20      1.492    0.376
 
 逐行說明：
 
@@ -1836,27 +2225,27 @@ qs
 ```
 
     Influence functions of quantile effects (conditional): 500 persons x 20 effects
-    target  predictor       p      est      se  se.robust
-    t1      ability    0.1000  -0.0068  0.0357     0.0351
-    t1      ability    0.9000  -0.0313  0.0376     0.0375
-    t2      ability    0.1000  -0.2615  0.0343     0.0323
-    t2      ability    0.9000  -0.3053  0.0342     0.0326
-    t3      ability    0.1000   0.0003  0.0383     0.0402
-    t3      ability    0.9000   0.0064  0.0367     0.0368
-    t4      ability    0.1000  -0.2778  0.0345     0.0335
-    t4      ability    0.9000  -0.3241  0.0383     0.0489
-    t5      ability    0.1000   0.0118  0.0356     0.0395
-    t5      ability    0.9000  -0.0402  0.0331     0.0307
-    t6      ability    0.1000  -0.2715  0.0417     0.0471
-    t6      ability    0.9000  -0.2835  0.0424     0.0408
-    t7      ability    0.1000  -0.0020  0.0338     0.0307
-    t7      ability    0.9000  -0.0010  0.0350     0.0365
-    t8      ability    0.1000  -0.2945  0.0354     0.0403
-    t8      ability    0.9000  -0.2856  0.0359     0.0439
-    t9      ability    0.1000   0.0237  0.0390     0.0392
-    t9      ability    0.9000   0.0359  0.0420     0.0408
-    t10     ability    0.1000  -0.3324  0.0367     0.0353
-    t10     ability    0.9000  -0.2873  0.0329     0.0338
+    target  predictor      p     est     se  se.robust
+    t1      ability    0.100  -0.007  0.036      0.035
+    t1      ability    0.900  -0.031  0.038      0.037
+    t2      ability    0.100  -0.261  0.034      0.032
+    t2      ability    0.900  -0.305  0.034      0.033
+    t3      ability    0.100   0.000  0.038      0.040
+    t3      ability    0.900   0.006  0.037      0.037
+    t4      ability    0.100  -0.278  0.034      0.033
+    t4      ability    0.900  -0.324  0.038      0.049
+    t5      ability    0.100   0.012  0.036      0.040
+    t5      ability    0.900  -0.040  0.033      0.031
+    t6      ability    0.100  -0.272  0.042      0.047
+    t6      ability    0.900  -0.284  0.042      0.041
+    t7      ability    0.100  -0.002  0.034      0.031
+    t7      ability    0.900  -0.001  0.035      0.037
+    t8      ability    0.100  -0.295  0.035      0.040
+    t8      ability    0.900  -0.286  0.036      0.044
+    t9      ability    0.100   0.024  0.039      0.039
+    t9      ability    0.900   0.036  0.042      0.041
+    t10     ability    0.100  -0.332  0.037      0.035
+    t10     ability    0.900  -0.287  0.033      0.034
 
 逐行說明：
 
@@ -1868,34 +2257,34 @@ qs
 
 - 標題：500 人 × 20 個效果（10 題 × 2 個 p）的影響函數矩陣。
 - `est`：最大概似的分位數效果；`se`：模型為基礎的標準誤（和 `quantiles()` 相同）；`se.robust`：sandwich 穩健標準誤。
-- 兩種標準誤大多接近，例如 t2 在 p = .1 是 0.0343 對 0.0323。差很多時（例如 t4 在 p = .9 是 0.0383 對 0.0489），表示分配的設定可能不完全對，報告時以穩健標準誤較保守。
+- 兩種標準誤大多接近，例如 t2 在 p = .1 是 0.034 對 0.032。差很多時（例如 t4 在 p = .9 是 0.038 對 0.049），表示分配的設定可能不完全對，報告時以穩健標準誤較保守。
 
 ``` r
 score_test(qs, d$x1 > 0)
 ```
 
     Score-based test of parameter invariance (LM test, factor with 2 levels moderator, none decorrelation)
-          parameters n statistic p.value p.holm
-      t1|ability|0.1 1     3.719  0.0538      1
-      t1|ability|0.9 1     0.008  0.9276      1
-      t2|ability|0.1 1     0.122  0.7267      1
-      t2|ability|0.9 1     2.246  0.1340      1
-      t3|ability|0.1 1     0.724  0.3947      1
-      t3|ability|0.9 1     1.254  0.2628      1
-      t4|ability|0.1 1     0.911  0.3398      1
-      t4|ability|0.9 1     0.644  0.4222      1
-      t5|ability|0.1 1     0.024  0.8761      1
-      t5|ability|0.9 1     0.001  0.9755      1
-      t6|ability|0.1 1     0.207  0.6495      1
-      t6|ability|0.9 1     1.613  0.2041      1
-      t7|ability|0.1 1     3.746  0.0529      1
-      t7|ability|0.9 1     0.344  0.5576      1
-      t8|ability|0.1 1     0.276  0.5993      1
-      t8|ability|0.9 1     0.259  0.6105      1
-      t9|ability|0.1 1     1.197  0.2738      1
-      t9|ability|0.9 1     0.891  0.3452      1
-     t10|ability|0.1 1     3.012  0.0827      1
-     t10|ability|0.9 1     0.234  0.6282      1
+    parameters       n  statistic  p.value  p.holm
+    t1|ability|0.1   1      3.719    0.054   1.000
+    t1|ability|0.9   1      0.008    0.928   1.000
+    t2|ability|0.1   1      0.122    0.727   1.000
+    t2|ability|0.9   1      2.246    0.134   1.000
+    t3|ability|0.1   1      0.724    0.395   1.000
+    t3|ability|0.9   1      1.254    0.263   1.000
+    t4|ability|0.1   1      0.911    0.340   1.000
+    t4|ability|0.9   1      0.644    0.422   1.000
+    t5|ability|0.1   1      0.024    0.876   1.000
+    t5|ability|0.9   1      0.001    0.975   1.000
+    t6|ability|0.1   1      0.207    0.649   1.000
+    t6|ability|0.9   1      1.613    0.204   1.000
+    t7|ability|0.1   1      3.746    0.053   1.000
+    t7|ability|0.9   1      0.344    0.558   1.000
+    t8|ability|0.1   1      0.276    0.599   1.000
+    t8|ability|0.9   1      0.259    0.611   1.000
+    t9|ability|0.1   1      1.197    0.274   1.000
+    t9|ability|0.9   1      0.891    0.345   1.000
+    t10|ability|0.1  1      3.012    0.083   1.000
+    t10|ability|0.9  1      0.234    0.628   1.000
 
 逐行說明：
 
@@ -1930,9 +2319,8 @@ dplyr::filter(ipc$coefficients, p_holm < 0.05)
 ```
 
     # A tibble: 1 × 7
-      parameter term    est     se statistic         p   p_holm
-      <chr>     <chr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-    1 y3 ~1     x2    0.404 0.0920      4.39 0.0000141 0.000565
+    parameter  term    est     se  statistic       p  p_holm
+    y3 ~1      x2    0.404  0.092      4.386  <0.001  <0.001
 
 逐行說明：
 
@@ -1962,9 +2350,8 @@ e[e$lhs == "E(y3)", ]
 ```
 
     # A tibble: 1 × 9
-      lhs   op    rhs      est    se     z    pvalue lower  upper
-      <chr> <chr> <chr>  <dbl> <dbl> <dbl>     <dbl> <dbl>  <dbl>
-    1 E(y3) ~     x2    -0.708 0.178 -3.99 0.0000665 -1.06 -0.360
+    lhs    op  rhs     est     se       z  pvalue   lower   upper
+    E(y3)  ~   x2   -0.708  0.178  -3.988  <0.001  -1.056  -0.360
 
 逐行說明：
 
@@ -2058,13 +2445,13 @@ summary(mn)
       Distributions: SA: normal (log sd ~ logT); 8 ordinal: grm (categories 3/4)
       Covariates: logT
       Moderators: logT (shift logT: free 2; loading logT: equal 8)
-      Approximate Bayes (ELGM; W = person latents): 36 parameters; 5 s
+      Approximate Bayes (ELGM; W = person latents): 36 parameters; 6 s
         inner: AGHQ (k = 21) per person; outer: AGHQ, k = 11 on log sd(SA) ~ logT, Gaussian in 35 directions (11 nodes)
       log marginal likelihood -5171.77; -2logL at the posterior mode 10133.0
 
     $fit  log marginal likelihood (ELGM)
       N  method                                               npar      logML  logLik_mode  Deviance_mode  nodes  ESS_nodes
-    600  ELGM: AGHQ (k = 21) inner, AGHQ (k = 11) on 1 outer    36  -5171.775    -5066.481      10132.961     11      3.788
+    600  ELGM: AGHQ (k = 21) inner, AGHQ (k = 11) on 1 outer    36  -5171.775    -5066.481      10132.961     11          4
 
     $items  item parameters (posterior means)
     item  type        SA      t1      t2     t3
@@ -2243,10 +2630,10 @@ prec <- birt(paste(sa, sprintf("E(%s) ~ pa*logT:SA", all8), "E(SA) ~ logT", sep 
 compare(GRM = grm, precision = prec, precision_DIF = mn)
 ```
 
-    model          method                                               npar      logML   dlogML  BF_best
+    model          method                                               npar      logML   dlogML   BF_best
     GRM            ELGM: AGHQ (k = 21) inner, Gaussian outer              31  -5260.947  -89.172  5.33e+38
     precision      ELGM: AGHQ (k = 21) inner, Gaussian outer              33  -5184.467  -12.692  3.25e+05
-    precision_DIF  ELGM: AGHQ (k = 21) inner, AGHQ (k = 11) on 1 outer    36  -5171.775    0.000     1
+    precision_DIF  ELGM: AGHQ (k = 21) inner, AGHQ (k = 11) on 1 outer    36  -5171.775    0.000     1.000
     BF_best: Bayes factor of the best model against each model (marginal likelihoods depend on the priors).
 
 逐行說明：
@@ -2279,16 +2666,17 @@ oi <- ordinal_information(mn)
 oi[oi$theta %in% c(-2, 0, 2), ]
 ```
 
-        theta        logT information
-    11     -2 -1.25977005   0.9463421
-    31      0 -1.25977005   2.3749577
-    51      2 -1.25977005   1.6714012
-    72     -2 -0.04968988   1.1373061
-    92      0 -0.04968988   4.6180327
-    112     2 -0.04968988   2.7626194
-    133    -2  1.30238081   1.1550307
-    153     0  1.30238081   9.2301975
-    173     2  1.30238081   4.5927883
+    # A data frame: 9 × 3
+     theta    logT  information
+    -2.000  -1.260        0.946
+     0.000  -1.260        2.375
+     2.000  -1.260        1.671
+    -2.000  -0.050        1.137
+     0.000  -0.050        4.618
+     2.000  -0.050        2.763
+    -2.000   1.302        1.155
+     0.000   1.302        9.230
+     2.000   1.302        4.593
 
 逐行說明：
 
@@ -2332,8 +2720,8 @@ gp <- birt(m_ml, dh, ordered = TRUE, itemtype = "gpcm")
 compare(GRM = mn, GPCM = gp)
 ```
 
-    model  method                                               npar      logML   dlogML  BF_best
-    GRM    ELGM: AGHQ (k = 21) inner, AGHQ (k = 11) on 1 outer    36  -5171.775    0.000     1
+    model  method                                               npar      logML   dlogML   BF_best
+    GRM    ELGM: AGHQ (k = 21) inner, AGHQ (k = 11) on 1 outer    36  -5171.775    0.000     1.000
     GPCM   ELGM: AGHQ (k = 21) inner, AGHQ (k = 11) on 1 outer    36  -5240.016  -68.241  4.33e+29
     BF_best: Bayes factor of the best model against each model (marginal likelihoods depend on the priors).
 
@@ -2415,16 +2803,16 @@ score_test(h0, dh$logT, by_item = TRUE)
 ```
 
     Score-based test of parameter invariance (DM test, numeric moderator, block decorrelation)
-      parameters  n statistic p.value p.holm
-     measurement 32     1.982 0.02443       
-              y1  3     2.011 0.00184 0.0147
-              y2  4     1.941 0.00427 0.0299
-              y3  4     1.937 0.00439 0.0299
-              y4  4     0.986 0.73938 1.0000
-              y5  4     0.973 0.75992 1.0000
-              y6  4     1.451 0.11332 0.5666
-              y7  4     1.293 0.25390 1.0000
-              y8  4     1.140 0.47537 1.0000
+    parameters    n  statistic  p.value  p.holm
+    measurement  32      1.982    0.024
+    y1            3      2.011    0.002   0.015
+    y2            4      1.941    0.004   0.030
+    y3            4      1.937    0.004   0.030
+    y4            4      0.986    0.739   1.000
+    y5            4      0.973    0.760   1.000
+    y6            4      1.451    0.113   0.567
+    y7            4      1.293    0.254   1.000
+    y8            4      1.140    0.475   1.000
 
 逐行說明：
 
@@ -2488,7 +2876,7 @@ jfit
     birt 0.2.0 [M2b]
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 28 s
+      JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 32 s
       Reliability: ability 0.805, speed 0.822
       LOOIC 13174.6 (SE 114.1), WAIC 13174.3, DIC 13176.0
     Use summary() for the parameter table.
@@ -2538,7 +2926,7 @@ summary(jfit)$selection
 **「邊緣參數也被選進來」的情況：**
 
 - 預設的事前納入機率 p_incl ~ Beta(1, 1) 是**從資料學**的，而且所有負荷量共用一個。
-- 若多數參數明顯不是 0（例如 TIMSS 14 題中有 10 題），共用的納入機率會被推高到 .8 左右，邊緣的參數也被拉進來。TIMSS 的 ME62344 就是這樣：估計值 −0.0005，區間以 0 為中心，p_incl 卻是 .55。
+- 若多數參數明顯不是 0（例如 TIMSS 14 題中有 10 題），共用的納入機率會被推高到 .8 左右，邊緣的參數也被拉進來。TIMSS 的 ME62344 就是這樣：估計值幾乎是 0（絕對值小於 0.001），區間以 0 為中心，p_incl 卻是 .55。
 - **要做檢定、要可解讀的 BF：** 固定事前納入機率，例如 `ssp_p = 0.5`（事前勝算為 1）：
 
 ``` r
@@ -2548,18 +2936,17 @@ e[!is.na(e$p_incl), c("lhs", "op", "rhs", "est", "p_incl", "BF10")]
 ```
 
     # A tibble: 10 × 6
-       lhs     op    rhs         est p_incl     BF10
-       <chr>   <chr> <chr>     <dbl>  <dbl>    <dbl>
-     1 ability =~    t1    -0.00137  0.0780   0.0846
-     2 ability =~    t2    -0.278    1      Inf     
-     3 ability =~    t3     0.000695 0.0740   0.0799
-     4 ability =~    t4    -0.293    1      Inf     
-     5 ability =~    t5    -0.00117  0.0867   0.0949
-     6 ability =~    t6    -0.269    1      Inf     
-     7 ability =~    t7     0.000156 0.0643   0.0688
-     8 ability =~    t8    -0.286    1      Inf     
-     9 ability =~    t9     0.00586  0.166    0.200 
-    10 ability =~    t10   -0.301    1      Inf     
+    lhs      op  rhs     est  p_incl   BF10
+    ability  =~  t1   -0.001   0.078  0.085
+    ability  =~  t2   -0.278   1.000    Inf
+    ability  =~  t3    0.001   0.074  0.080
+    ability  =~  t4   -0.293   1.000    Inf
+    ability  =~  t5   -0.001   0.087  0.095
+    ability  =~  t6   -0.269   1.000    Inf
+    ability  =~  t7    0.000   0.064  0.069
+    ability  =~  t8   -0.286   1.000    Inf
+    ability  =~  t9    0.006   0.166  0.200
+    ability  =~  t10  -0.301   1.000    Inf
 
 逐行說明：
 
@@ -2645,8 +3032,8 @@ ppc(jfit, n_draws = 100)
     y6    t6                0.081           0.007  0.060
     y7    t7               -0.003          -0.002  0.510
     y8    t8                0.015          -0.012  0.290
-    y9    t9                0.054          -0.000  0.140
-    y10   t10               0.019          -0.000  0.360
+    y9    t9                0.054           0.000  0.140
+    y10   t10               0.019           0.000  0.360
 
 逐行說明：
 
@@ -2774,18 +3161,18 @@ dim(D)
 
 ``` r
 rel <- function(D) { v <- var(colMeans(D)); v / (v + mean(apply(D, 2, var))) }
-c(x1_high = rel(D[, d$x1 > 0]), x1_low = rel(D[, d$x1 <= 0]))
+round(c(x1_high = rel(D[, d$x1 > 0]), x1_low = rel(D[, d$x1 <= 0])), 3)
 ```
 
-      x1_high    x1_low 
-    0.7960769 0.8113831 
+    x1_high  x1_low 
+      0.796   0.811 
 
 ``` r
-quantile(apply(D, 1, function(th) cor(th, d$x2)), c(.025, .5, .975))
+round(quantile(apply(D, 1, function(th) cor(th, d$x2)), c(.025, .5, .975)), 3)
 ```
 
-            2.5%          50%        97.5% 
-    -0.036757021  0.001526481  0.039231216 
+      2.5%    50%  97.5% 
+    -0.037  0.002  0.039 
 
 逐行說明：
 
@@ -2793,8 +3180,8 @@ quantile(apply(D, 1, function(th) cor(th, d$x2)), c(.025, .5, .975))
 2.  只留下 `ability[1]`、`ability[2]`、… 的欄位。
 3.  看維度：抽樣次數 × 人數。
 4.  用抽樣定義 EAP 信度：var(EAP) / (var(EAP) + 平均後驗變異數)。
-5.  依 x1 分成兩組，分別算子群體信度。
-6.  每個抽樣算一次 ability 與 x2 的相關，再取 2.5%、50%、97.5% 分位數：相關的後驗區間，包含了能力估計的不確定性。
+5.  依 x1 分成兩組，分別算子群體信度。這裡的數字是自己算的一般向量，所以用 `round(..., 3)` 只印到小數三位。
+6.  每個抽樣算一次 ability 與 x2 的相關，再取 2.5%、50%、97.5% 分位數（同樣四捨五入到三位）：相關的後驗區間，包含了能力估計的不確定性。
 
 輸出怎麼讀：
 

@@ -2,7 +2,8 @@
 Jie-Wen Tsai
 2026-10-29
 
-- [0. 這份教學怎麼讀](#0-這份教學怎麼讀)
+- [這份教學怎麼讀](#這份教學怎麼讀)
+- [0. 新手導入：第一次用 R、第一次做 IRT](#0-新手導入第一次用-r第一次做-irt)
 - [1. 載入](#1-載入)
 - [2. 模型在說什麼](#2-模型在說什麼)
 - [3. 準備資料：`input_data()`](#3-準備資料input_data)
@@ -19,11 +20,14 @@ Jie-Wen Tsai
 - [附錄 B：怎麼確定結果是對的（進階）](#附錄-b怎麼確定結果是對的進階)
 - [參考文獻](#參考文獻)
 
-## 0. 這份教學怎麼讀
+## 這份教學怎麼讀
 
-**給誰看：** 會用 R、知道 2PL 的鑑別度與難度是什麼的讀者（大學部高年級以上）。不需要會寫 MCMC。
+**給誰看：** 兩種讀者都可以，從不同的地方開始讀。
 
-**2PL 一段複習：** 能力 θ 的人答對第 i 題的機率是 P = 1 / (1 + exp(−aᵢ(θ − bᵢ)))。難度 bᵢ 是答對機率剛好 50% 的能力；鑑別度 aᵢ 是這條曲線在 bᵢ 附近有多陡（a 愈大，愈能分出能力高低）。想多讀一點：de Ayala 的 *The Theory and Practice of Item Response Theory* 裡講 2PL 的那一章。
+- **幾乎沒用過 R、也沒估過 IRT 模型的人：** 從第 0 節「新手導入」開始。它從資料長什麼樣子講起，介紹模型在估什麼、怎麼安裝軟體，最後帶你跑完第一個分析。
+- **已經會 R、知道 2PL 的鑑別度與難度是什麼的人**（大學部高年級以上）：可以跳到第 1 節。遇到不熟的詞，查第 0 節最後的查詞表（0.8）。
+
+兩種讀者都不需要會寫 MCMC。
 
 **會學到什麼：** 用 birtRcpp 現成的模型，分析「作答對錯」加上「作答時間」的資料。主線只有四步：
 
@@ -34,7 +38,7 @@ Jie-Wen Tsai
 
 需要下面三件事的時候，再做第五步：
 
-- 參數的後驗分配：貝氏的結果，詞的意思見下面「Gibbs（貝氏）」表；
+- 參數的後驗分配：貝氏的結果，詞的意思見 0.8 節查詞表的「Gibbs（貝氏）」表；
 - 分位數模型：不看平均的作答時間，改看作答時間偏長（或偏短）的那一端，見第 8 節；
 - 作答時間異常檢定：找出作答時間不像模型預期的人，見第 9 節。
 
@@ -52,7 +56,414 @@ Jie-Wen Tsai
 
 **想自己組模型的人：** 讀完這份之後，看第二份教學《birtRcpp 積木》。積木（`block_model()`）已不建議使用、不再加新功能；一般的分析用這份教學的 `ecm()`／`gibbs()` 就好。
 
-### 先認識幾個詞
+## 0. 新手導入：第一次用 R、第一次做 IRT
+
+這一節給完全的新手。讀完你會知道：資料要整理成什麼樣子、模型在估什麼、怎麼裝好軟體，並且自己跑完第一個分析。已經會 R 與 IRT 的人可以跳到第 1 節。
+
+### 0.1 資料長什麼樣子
+
+一次測驗結束後，每個人在每一題都留下兩筆紀錄：
+
+- **對錯**：答對記 1，答錯記 0；
+- **作答時間**：這一題花了幾秒。
+
+整理成表格時，**一列是一個人**，一欄是一題的對錯或秒數。下面是 4 個人、3 題的小例子：
+
+``` r
+toy <- data.frame(
+  id = c("S01", "S02", "S03", "S04"),
+  q1 = c(1, 0, 1, 1), q2 = c(0, 0, 1, 1), q3 = c(1, 0, 0, 1),
+  q1_sec = c(12.5, 30.2, 8.1, 10.4), q2_sec = c(25.0, 41.3, 15.2, 18.9), q3_sec = c(9.8, 22.4, 12.0, 7.5)
+)
+toy
+```
+
+       id q1 q2 q3 q1_sec q2_sec q3_sec
+    1 S01  1  0  1   12.5   25.0    9.8
+    2 S02  0  0  0   30.2   41.3   22.4
+    3 S03  1  1  0    8.1   15.2   12.0
+    4 S04  1  1  1   10.4   18.9    7.5
+
+**逐行說明**
+
+1.  `data.frame(...)`：建立一張表。R 把這種表叫**資料框**（data frame）。括號裡每一項是一欄，寫法是「欄名 = 這一欄的值」。
+2.  `c(1, 0, 1, 1)`：把幾個值串成一串（c 是 combine，合併）。4 個值對應 4 個人。
+3.  `toy <- ...`：把這張表存起來，取名 `toy`。`<-` 讀作「存成」。後面打 `toy`，就是這張表。
+4.  最後一行只打 `toy`：R 把它印出來。
+
+**輸出怎麼讀**
+
+- 最左邊的 1–4 是 R 自動加的列號，不是資料。
+- `id`：每個人的代號。
+- `q1`–`q3`：三題的對錯。S04 三題全對，S02 三題全錯。
+- `q1_sec`–`q3_sec`：三題各花了幾秒。S02 每一題都花最久。
+
+你自己的資料通常存在 Excel 或 CSV 檔裡。只要整理成這個樣子（一列一人、對錯是 0/1、時間是秒），就能用這個套件分析。資料是一列一個「人 × 題」的話，第 11 節會示範怎麼轉。
+
+### 0.2 IRT 的白話說明
+
+**IRT**（item response theory，試題反應理論）是一組統計模型。它把「答對的機率」寫成兩種東西的函數：
+
+- **人的能力**（ability），寫成 θ（讀作 theta）。能力愈高，愈容易答對。
+- **題目的特性**：
+  - **難度** b（difficulty）：要多少能力，才有一半的機會答對。b 愈大，題目愈難；
+  - **鑑別度** a（discrimination）：能力高一點點，答對的機率增加得多快。a 愈大，這一題愈能分出能力的高低。
+
+能力沒有天生的單位。模型把一群人能力的平均定為 0、標準差（SD）定為 1。所以 θ = 1 是「比平均高一個標準差」；b = 1 的題目，對能力在平均的人來說偏難。
+
+只用 a、b 兩個題目參數的模型叫 **2PL**（two-parameter logistic，兩參數邏輯斯模型）。它的式子是：
+
+$$
+P(\text{答對}) = \frac{1}{1 + \exp(-a(\theta - b))}
+$$
+
+不用背式子，看圖比較快：
+
+``` r
+theta <- seq(-4, 4, by = 0.1)
+plot(theta, plogis(1 * (theta - 0)), type = "l", ylim = c(0, 1), xlab = "ability (theta)", ylab = "P(correct)")
+lines(theta, plogis(2 * (theta - 0)), lty = 2)
+lines(theta, plogis(1 * (theta - 1.5)), lty = 3)
+abline(h = 0.5, col = "grey")
+legend("topleft", c("a = 1, b = 0", "a = 2, b = 0", "a = 1, b = 1.5"), lty = 1:3, bty = "n")
+```
+
+![](birtRcpp_intro_files/figure-commonmark/icc-1.png)
+
+**逐行說明**
+
+1.  `seq(-4, 4, by = 0.1)`：從 −4 到 4、每次加 0.1 的一串數字，當作能力的範圍，存成 `theta`。
+2.  `plogis(1 * (theta - 0))`：上面的式子，a = 1、b = 0（`plogis(x)` 就是 1 / (1 + exp(−x))）。`plot(..., type = "l")` 把它畫成一條線；`ylim` 是縱軸的範圍，`xlab`、`ylab` 是兩軸的名字。
+3.  `lines()`：在同一張圖上再加一條線。這條是 a = 2、b = 0。`lty = 2` 是虛線。
+4.  再加一條：a = 1、b = 1.5，點線。
+5.  `abline(h = 0.5)`：在機率 0.5 的高度畫一條灰色橫線。
+6.  `legend()`：圖例。`bty = "n"` 是不要外框。
+
+**輸出怎麼讀**
+
+- 這種圖叫**題目特徵曲線**。一條曲線是一題：橫軸是能力，縱軸是答對的機率。
+- 曲線穿過灰線（機率 0.5）的位置，就是難度 b。實線和虛線在 θ = 0 穿過；點線在 θ = 1.5 才穿過，所以點線那一題比較難。
+- 虛線（a = 2）比實線（a = 1）陡。能力從 −1 走到 1，虛線的答對機率變得比較多：這一題比較能分出能力的高低。
+
+估計一個 IRT 模型，就是從所有人的 0/1 資料，同時找出每一題的 a、b。每個人的能力 θ 也會一起估出來。想多讀一點：de Ayala 的 *The Theory and Practice of Item Response Theory* 裡講 2PL 的那一章。
+
+### 0.3 作答時間：速度與時間強度
+
+只看對錯，會漏掉一些訊息。兩個人都答對了，一個花 10 秒，一個花 60 秒，他們不太一樣。作答時間的模型多了兩種參數：
+
+- **速度** ζ（speed，讀作 zeta）：每個人的作答速度。ζ 愈大，花的時間愈短。
+- **時間強度** λ（time intensity，讀作 lambda）：每一題本來要花多少時間。λ 愈大，這一題愈花時間。
+
+模型用的不是秒數，而是秒數的 log（自然對數）：
+
+log 時間 = λ − ζ + 誤差
+
+- 為什麼取 log？秒數一定是正的，而且少數人會花非常久，分配往右拖得很長。取 log 之後，分配比較對稱，比較接近常態分配。
+- λ 換回秒數是 e^λ。例如 λ = 4，大約是 e⁴ ≈ 55 秒：能力與速度都在平均的人，在這一題大約花 55 秒。
+
+加上作答時間有三個好處：
+
+- **看出能力與速度的關係**：模型會估計兩者的相關。例如能力高的人是不是也比較快。
+- **估得更準**：能力與速度有相關時，作答時間也帶有能力的訊息。
+- **找出異常的作答**：時間短得不合理的人，可能在亂猜，或事先看過題目（第 9 節）。
+
+birtRcpp 把對錯的模型（2PL）和時間的模型放在一起估計。這類模型常叫 **RT-IRT**（RT 是 response time，作答時間）。第 2 節會介紹五個現成的模型。
+
+### 0.4 安裝 R、RStudio 與 birtRcpp
+
+要裝三樣東西，每台電腦只要裝一次：
+
+1.  **R**：統計軟體本身。到 CRAN（<https://cran.r-project.org>）下載你的作業系統的版本，照預設安裝。
+2.  **RStudio**：寫 R 程式用的編輯器，比 R 內建的視窗好用。到 Posit 的網站（<https://posit.co/download/rstudio-desktop/>）下載免費版。以後打開 RStudio 就好，它會自己啟動 R。
+3.  **C++ 編譯工具**：birtRcpp 有一部分是用 C++ 寫的，安裝時要先**編譯**（把程式碼轉成電腦能執行的檔案）。
+    - Windows：到 CRAN 下載 **Rtools**（<https://cran.r-project.org/bin/windows/Rtools/>），選和你的 R 版本相同的那一版，照預設安裝。
+    - macOS：打開「終端機」（Terminal），輸入 `xcode-select --install`，照畫面的指示安裝 Xcode 命令列工具。
+
+然後在 RStudio 左下角的 **Console**（主控台，打指令的地方）執行下面兩行。這一段只需要做一次，所以這份文件沒有執行它：
+
+``` r
+install.packages("remotes")
+remotes::install_github("jiewenTsai/birtRcpp", build_vignettes = TRUE)
+```
+
+**逐行說明**
+
+1.  `install.packages("remotes")`：安裝 remotes 套件。**套件**（package）是別人寫好、可以裝進 R 的一組函數。remotes 能從 GitHub 安裝套件。
+2.  `remotes::install_github(...)`：從 GitHub 下載 birtRcpp 並安裝。`remotes::` 的意思是「用 remotes 套件裡的這個函數」。`build_vignettes = TRUE` 一併安裝英文的簡介（之後用 `vignette("birtRcpp")` 打開）。
+
+**輸出怎麼讀**
+
+- 安裝要幾分鐘，畫面會捲過很多行。最後出現 `* DONE (birtRcpp)` 就是裝好了。
+- 出現 `compilation failed`、`make: not found`，或找不到 `g++`、`clang++`：表示第 3 步的編譯工具沒裝好。重裝之後，重開 RStudio 再試一次。
+
+裝好之後，每次打開 RStudio，要先載入套件才能用：`library(birtRcpp)`。
+
+### 0.5 夠用的 R 基本功
+
+這份教學只需要會下面幾件事。
+
+``` r
+x <- c(3, 5, 10)
+mean(x)
+```
+
+    [1] 6
+
+``` r
+toy$q1
+```
+
+    [1] 1 0 1 1
+
+``` r
+nrow(toy)
+```
+
+    [1] 4
+
+``` r
+head(toy, 2)
+```
+
+       id q1 q2 q3 q1_sec q2_sec q3_sec
+    1 S01  1  0  1   12.5   25.0    9.8
+    2 S02  0  0  0   30.2   41.3   22.4
+
+``` r
+round(mean(toy$q1_sec), digits = 1)
+```
+
+    [1] 15.3
+
+**逐行說明**
+
+1.  `x <- c(3, 5, 10)`：把三個數字存成 `x`。
+2.  `mean(x)`：算平均。`mean` 是一個**函數**（function），括號裡放的是給它的**參數**（argument）。
+3.  `toy$q1`：取出資料框 `toy` 的 `q1` 這一欄。`$` 可以讀作「的」。
+4.  `nrow(toy)`：資料框有幾列，也就是有幾個人。
+5.  `head(toy, 2)`：只看前 2 列。資料很大時，用它看一眼就好。
+6.  `round(..., digits = 1)`：四捨五入到小數 1 位。
+    - `digits = 1` 是**有名字的參數**：寫出名字，就不用記參數的順序。
+    - 函數裡面可以再放函數。R 從最裡面算起：先取出 `q1_sec`，再算平均，最後四捨五入。
+
+**輸出怎麼讀**
+
+- 每一行前面的 `[1]` 是 R 標的「這一行從第 1 個值開始」，不是資料。
+- `mean(x)` 是 6。
+- `toy$q1` 是 4 個人第 1 題的對錯。`nrow(toy)` 是 4。
+- 最後一行：第 1 題平均花了 15.3 秒。
+
+**還會用到的**
+
+- 查函數怎麼用：在函數名前面加問號，例如 `?ecm`。RStudio 右下角會打開說明頁。
+- 讀 CSV 檔：`raw <- read.csv("mydata.csv")`。檔案要放在 RStudio 的**工作資料夾**裡（選單 Session → Set Working Directory），或寫出檔案的完整路徑。
+- `#` 後面是**註解**，給人看的說明，R 不會執行。
+
+**看懂錯誤訊息**
+
+程式有錯時，R 會印出 `Error`，然後停下來。先讀冒號後面那一句，它通常會說哪裡錯了。例如欄名打錯：
+
+``` r
+library(birtRcpp)
+input_data(resp = c("q1", "q2", "q4"), data = toy)
+```
+
+    Error: resp: columns not in `data`: q4
+
+**逐行說明**
+
+1.  `library(birtRcpp)`：載入套件。每次打開 RStudio 都要做一次。
+2.  `input_data()`：告訴套件哪些欄是作答（下一段會正式用到）。這裡故意寫了一個不存在的欄 `q4`。
+
+**輸出怎麼讀**
+
+- `Error`：出錯了，這一行沒有完成。
+- 冒號後面那一句（`columns not in` … `q4`）是說：`resp =` 裡的 `q4` 不在資料框裡。把欄名改成 `q3`，就不會再報錯。
+- 載入套件時如果看到 `vi` 被遮蔽（masked）的訊息，那不是錯誤，可以不理它（第 1 節）。
+- `Warning`（警告）和 `Error` 不一樣：警告不會停下來，結果還是算出來了，但要讀一下它在提醒什麼。
+- 看不懂的錯誤訊息，可以整句複製去網路上搜尋。
+
+### 0.6 第一個完整的分析
+
+下面大約 10 行，從資料到結果。前五行做一份練習用的資料（500 人、10 題）。用自己的資料時，把這五行換成 `raw <- read.csv("mydata.csv")`。
+
+``` r
+set.seed(1)
+cond <- set_cond(n_subj = 500, n_item = 10)
+sim <- sim_data(cond, sim_para(cond, "null"), "null")
+raw <- data.frame(id = 1:500, sim$Y, round(sim$T, 1))
+names(raw) <- c("id", paste0("q", 1:10), paste0("q", 1:10, "_sec"))
+head(raw[, c("id", "q1", "q2", "q1_sec", "q2_sec")], 3)
+```
+
+      id q1 q2 q1_sec q2_sec
+    1  1  1  1   76.3   85.1
+    2  2  1  0   96.4   27.2
+    3  3  0  0   59.1  349.1
+
+``` r
+dat <- input_data(resp = paste0("q", 1:10), time = paste0("q", 1:10, "_sec"), id = "id", data = raw)
+fit <- ecm(dat, model = "null")
+fit
+```
+
+    model = "null" (rtirt_null)
+      500 persons x 10 items
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 10 iterations, 0.3 s
+      logLik -7939.762, npar 42, AIC 15963.524, BIC 16140.537
+      Reliability: ability 0.656, speed 0.917
+    Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model = ..., init = fit) to sample from here.
+
+``` r
+summary(fit)
+```
+
+    model = "null" (rtirt_null)
+      500 persons x 10 items
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 10 iterations, 0.3 s
+
+    $fit  marginal likelihood (persons integrated out)
+    method     logLik  npar    N        AIC        BIC
+    ECM     -7939.762    42  500  15963.524  16140.537
+
+    $items  item parameters (ECM estimates)
+    item      a       b  lambda  sigma2t
+    q1    1.113  -0.250   3.874    0.295
+    q2    1.267  -0.063   3.929    0.339
+    q3    0.624  -1.002   3.843    0.340
+    q4    1.226  -0.576   3.974    0.330
+    q5    0.915   0.043   4.187    0.321
+    q6    0.590  -0.337   4.110    0.290
+    q7    0.872  -0.331   3.960    0.237
+    q8    0.616  -0.699   4.187    0.339
+    q9    0.999  -0.418   4.352    0.223
+    q10   1.325   0.860   3.976    0.374
+
+    $se  standard errors of the item parameters
+    item      a      b  lambda  sigma2t
+    q1    0.177  0.105   0.035    0.021
+    q2    0.197  0.093   0.037    0.023
+    q3    0.136  0.247   0.037    0.023
+    q4    0.195  0.114   0.036    0.023
+    q5    0.157  0.115   0.036    0.022
+    q6    0.131  0.177   0.035    0.020
+    q7    0.153  0.128   0.034    0.017
+    q8    0.134  0.207   0.037    0.023
+    q9    0.166  0.120   0.033    0.016
+    q10   0.222  0.129   0.038    0.026
+
+    $parameters  ML estimate, SE, Wald z and 95% interval (log scale for a, sigma2t, var_speed; Fisher-z for the correlation)
+
+    Discrimination (a):
+                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
+        q1                  1.113    0.177                       0.815     1.521
+        q2                  1.267    0.197                       0.934     1.720
+        q3                  0.624    0.136                       0.408     0.957
+        q4                  1.226    0.195                       0.897     1.675
+        q5                  0.915    0.157                       0.654     1.281
+        q6                  0.590    0.131                       0.381     0.911
+        q7                  0.872    0.153                       0.618     1.232
+        q8                  0.616    0.134                       0.403     0.943
+        q9                  0.999    0.166                       0.722     1.382
+        q10                 1.325    0.222                       0.954     1.841
+
+    Difficulty (b):
+                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
+        q1                 -0.250    0.105   -2.383    0.017    -0.455    -0.044
+        q2                 -0.063    0.093   -0.673    0.501    -0.245     0.120
+        q3                 -1.002    0.247   -4.058   <0.001    -1.485    -0.518
+        q4                 -0.576    0.114   -5.064   <0.001    -0.799    -0.353
+        q5                  0.043    0.115    0.377    0.706    -0.183     0.270
+        q6                 -0.337    0.177   -1.905    0.057    -0.684     0.010
+        q7                 -0.331    0.128   -2.578    0.010    -0.582    -0.079
+        q8                 -0.699    0.207   -3.384   <0.001    -1.104    -0.294
+        q9                 -0.418    0.120   -3.467   <0.001    -0.654    -0.182
+        q10                 0.860    0.129    6.655   <0.001     0.607     1.113
+
+    Time intensity (lambda):
+                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
+        q1                  3.874    0.035                       3.805     3.943
+        q2                  3.929    0.037                       3.857     4.001
+        q3                  3.843    0.037                       3.771     3.915
+        q4                  3.974    0.036                       3.902     4.045
+        q5                  4.187    0.036                       4.116     4.258
+        q6                  4.110    0.035                       4.040     4.179
+        q7                  3.960    0.034                       3.894     4.026
+        q8                  4.187    0.037                       4.115     4.259
+        q9                  4.352    0.033                       4.287     4.417
+        q10                 3.976    0.038                       3.902     4.050
+
+    Residual variance of log RT (sigma2t):
+                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
+        q1                  0.295    0.021                       0.257     0.338
+        q2                  0.339    0.023                       0.296     0.388
+        q3                  0.340    0.023                       0.297     0.389
+        q4                  0.330    0.023                       0.288     0.378
+        q5                  0.321    0.022                       0.280     0.368
+        q6                  0.290    0.020                       0.253     0.333
+        q7                  0.237    0.017                       0.206     0.273
+        q8                  0.339    0.023                       0.296     0.388
+        q9                  0.223    0.016                       0.194     0.257
+        q10                 0.374    0.026                       0.327     0.428
+
+    Structural:
+                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
+        cor_ability_speed   0.241    0.056    4.316   <0.001     0.129     0.347
+        var_speed           0.333    0.023                       0.291     0.381
+
+    $reliability  reliability of the EAP scores (final E-step)
+    ability  speed
+      0.656  0.917
+
+**逐行說明**
+
+1.  `set.seed(1)`：固定**亂數種子**。下面的資料是電腦隨機產生的；固定種子，每次執行才會得到一樣的資料。
+2.  `set_cond()`：設定練習資料的大小，500 人、10 題。
+3.  `sim_data(...)`：照 `"null"` 這個模型隨機產生資料（`sim_para()` 先產生一組「真的」題目參數）。`sim$Y` 是對錯，`sim$T` 是秒數。
+4.  `data.frame(...)`：把 ID、對錯和秒數放進同一個資料框，像 0.1 節的 `toy`。`round(sim$T, 1)` 把秒數取到小數 1 位，像碼錶記的時間。
+5.  `names(raw) <- ...`：替每一欄命名：`id`、`q1`–`q10`（對錯）、`q1_sec`–`q10_sec`（秒數）。`paste0("q", 1:10)` 會做出 “q1”、“q2”、…、“q10” 這 10 個名字。
+6.  `head(...)`：看前 3 個人的幾個欄位，確定資料長得像 0.1 節那樣。
+7.  `input_data()`：告訴套件哪些欄是什麼：`resp =` 是對錯的欄、`time =` 是秒數的欄、`id =` 是 ID 的欄、`data =` 是資料框。套件會檢查資料，並把秒數取 log。
+8.  `ecm(dat, model = "null")`：估計模型。
+    - `model = "null"` 是最基本的「對錯 + 時間」模型：每題有 a、b、λ，能力與速度可以有相關；
+    - `ecm()` 是估計的方法，找出最能解釋資料的參數值（**最大概似估計**，詳見第 4 節）。通常一兩秒就算完。
+9.  `fit`：印出簡短的摘要。
+10. `summary(fit)`：印出所有的結果表。
+
+**輸出怎麼讀：先看這四個地方**
+
+`summary(fit)` 印了很多表。第一次看，只要找下面四個地方：
+
+1.  **每題的難度與鑑別度**（`$items` 表的 `a`、`b` 兩欄）。
+    - `b`：q10 最難（0.860），q3 最容易（−1.002）。大多數題目的 b 小於 0，表示這份測驗對這群人偏容易。
+    - `a`：q10（1.325）和 q2（1.267）最能分出能力高低；q6（0.590）最差。
+2.  **每題要花多少時間**（同一張表的 `lambda` 欄）。q9 最花時間：λ = 4.352，換回秒數是 e^4.352 ≈ 78 秒；q3 最快：λ = 3.843，約 47 秒。
+3.  **能力與速度的相關**（`$parameters` 最後的 `Structural` 段，`cor_ability_speed` 那一列）。
+    - 估計值 0.241，95% 區間從 0.129 到 0.347，不含 0；
+    - 速度 ζ 愈大表示愈快，所以相關是正的，表示能力高的人通常也作答得比較快一點。
+4.  **信度**（最後的 `$reliability`，`fit` 的 `Reliability` 那行也有）。
+    - 能力 0.656、速度 0.917。信度介於 0 到 1，愈接近 1，表示估出來的分數愈穩定、測量誤差愈小；
+    - 速度的信度比較高，因為 10 個連續的秒數，比 10 個 0/1 帶有更多訊息。
+
+其他的欄位：
+
+- 數字都印到小數 3 位。存在 `fit` 裡的值沒有四捨五入。
+- `$se` 和 `Std.Err` 是**標準誤**：估計值有多不確定，愈小愈準。
+- `ci.lower`、`ci.upper` 是 95% 區間的兩端：參數的真值很可能落在這個範圍裡。
+- `P(>|z|)` 是「這個參數等於 0」的 p 值，`<0.001` 表示小於 0.001。
+- `logLik`、`AIC`、`BIC` 用來比較模型（第 4 節）。
+- `sigma2t`（log 時間的誤差變異數）、`var_speed`（速度的變異數）也會在第 4 節說明。
+
+### 0.7 接下來讀什麼
+
+- 第 1–4 節：同樣的流程，換成交叉關係模型（能力會不會直接影響某一題花的時間），每一個輸出都逐行解釋。
+- 第 2 節：五個現成的模型，以及什麼時候用哪一個。
+- 第 3 節：資料有問題時會看到的訊息；共變項（例如性別）要先置中。
+- 第 11 節：從 CSV 檔到報告（長格式、毫秒、遺漏值）。
+- 第 12 節：常見問題。
+- 英文的簡短版本：`vignette("birtRcpp")`。
+
+### 0.8 查詞表：先認識幾個詞
 
 下面的詞很多。第一次讀時先瀏覽一遍就好，後面遇到再回來查。
 
@@ -116,6 +527,8 @@ set.seed(2026)
 - `set.seed(2026)`：固定亂數種子，讓下面的模擬資料每次都一樣。
 
 **輸出怎麼讀：** 沒有輸出。載入時如果看到 `vi` 被遮蔽（masked）的訊息，可以不理它：birtRcpp 也有一個叫 `vi()` 的函數（已不建議使用）。
+
+讀過第 0 節的人已經載入過套件，這裡再執行一次也沒關係；`set.seed(2026)` 讓後面的模擬資料和這份文件一樣。從這一節起，`raw`、`dat`、`fit` 這些名字會重新建立，換成另一份資料。
 
 ## 2. 模型在說什麼
 
@@ -304,8 +717,8 @@ fit
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.3 s
-      logLik -9946.565, npar 51, AIC 19995.1, BIC 20219.4
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.5 s
+      logLik -9946.565, npar 51, AIC 19995.130, BIC 20219.374
       Reliability: ability 0.751, speed 0.966
     Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model = ..., init = fit) to sample from here.
 
@@ -471,7 +884,7 @@ print(s, tables = c("fit", "parameters"))
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.3 s
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.5 s
 
     $fit  marginal likelihood (persons integrated out)
     method     logLik  npar    N        AIC        BIC
@@ -495,13 +908,13 @@ print(s, tables = c("fit", "parameters"))
     Difficulty (b):
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
         item01             0.231    0.096    2.403    0.016     0.043     0.419
-        item02            -0.439    0.118   -3.722    0.000    -0.670    -0.208
-        item03             0.828    0.125    6.613    0.000     0.582     1.073
+        item02            -0.439    0.118   -3.722   <0.001    -0.670    -0.208
+        item03             0.828    0.125    6.613   <0.001     0.582     1.073
         item04             0.009    0.097    0.091    0.927    -0.182     0.200
         item05            -0.153    0.095   -1.606    0.108    -0.339     0.034
-        item06            -0.768    0.120   -6.395    0.000    -1.003    -0.532
+        item06            -0.768    0.120   -6.395   <0.001    -1.003    -0.532
         item07            -0.091    0.094   -0.966    0.334    -0.276     0.094
-        item08            -0.511    0.148   -3.443    0.001    -0.801    -0.220
+        item08            -0.511    0.148   -3.443   <0.001    -0.801    -0.220
         item09            -0.064    0.114   -0.564    0.573    -0.287     0.159
         item10             0.131    0.089    1.473    0.141    -0.043     0.305
 
@@ -534,14 +947,14 @@ print(s, tables = c("fit", "parameters"))
     Cross-relation of ability with log RT (rho):
                         Estimate  Std.Err  z-value  P(>|z|)  ci.lower  ci.upper
         item01             0.117    0.054    2.150    0.032     0.010     0.224
-        item02            -0.217    0.053   -4.109    0.000    -0.320    -0.113
-        item03             0.193    0.053    3.617    0.000     0.089     0.298
-        item04            -0.220    0.054   -4.074    0.000    -0.326    -0.114
-        item05            -0.440    0.055   -7.965    0.000    -0.548    -0.332
-        item06            -0.213    0.055   -3.878    0.000    -0.321    -0.105
+        item02            -0.217    0.053   -4.109   <0.001    -0.320    -0.113
+        item03             0.193    0.053    3.617   <0.001     0.089     0.298
+        item04            -0.220    0.054   -4.074   <0.001    -0.326    -0.114
+        item05            -0.440    0.055   -7.965   <0.001    -0.548    -0.332
+        item06            -0.213    0.055   -3.878   <0.001    -0.321    -0.105
         item07            -0.106    0.054   -1.971    0.049    -0.211    -0.001
         item08            -0.095    0.054   -1.740    0.082    -0.201     0.012
-        item09            -0.238    0.053   -4.475    0.000    -0.343    -0.134
+        item09            -0.238    0.053   -4.475   <0.001    -0.343    -0.134
         item10            -0.102    0.052   -1.946    0.052    -0.204     0.001
 
     Structural:
@@ -558,7 +971,7 @@ print(s, tables = c("fit", "parameters"))
   - 欄位是估計方法 `method`（ECM）、logLik、參數個數 `npar`、人數 `N`、AIC、BIC。
 - `$parameters`：依參數類別分段，例如 Discrimination (a)、Difficulty (b)、Time intensity (lambda)、Residual variance of log RT (sigma2t)、Cross-relation (rho)。
   - `Estimate`：最大概似估計值；`Std.Err`：標準誤。
-  - `z-value` = Estimate / Std.Err；`P(>|z|)`：「參數等於 0」的雙尾 p 值。印成 0.000 表示小於 .0005。
+  - `z-value` = Estimate / Std.Err；`P(>|z|)`：「參數等於 0」的雙尾 p 值。印成 `<0.001` 表示小於 0.001。
   - `ci.lower`、`ci.upper`：Wald 95% 區間。
 - `$parameters` 的標題說：a、sigma2t、var_speed 的區間是在 log 尺度上算，再轉回來。所以這些區間不對稱，也不會出現負值。
 - 標題裡的 `Fisher-z for the correlation` 是給「相關」用的轉換。這個模型沒有相關，所以用不到。
@@ -570,30 +983,28 @@ print(s, tables = c("fit", "parameters"))
 head(estimates(fit, pars = "^rho"), 3)
 ```
 
-    # A tibble: 3 × 7
-      parameter      est     se     z    q025   q975 sig  
-      <chr>        <dbl>  <dbl> <dbl>   <dbl>  <dbl> <chr>
-    1 rho[item01]  0.117 0.0545  2.15  0.0104  0.224 *    
-    2 rho[item02] -0.217 0.0527 -4.11 -0.320  -0.113 *    
-    3 rho[item03]  0.193 0.0534  3.62  0.0885  0.298 *    
+    # A tibble: 3 x 7
+    parameter       est     se       z    q025    q975  sig
+    rho[item01]   0.117  0.054   2.150   0.010   0.224  *
+    rho[item02]  -0.217  0.053  -4.109  -0.320  -0.113  *
+    rho[item03]   0.193  0.053   3.617   0.089   0.298  *
 
 ``` r
 head(scores(fit), 3)
 ```
 
-    # A tibble: 3 × 5
-         id ability ability_psd   speed speed_psd
-      <int>   <dbl>       <dbl>   <dbl>     <dbl>
-    1  5001   0.849       0.500 -0.122      0.182
-    2  5002  -1.16        0.513  0.248      0.182
-    3  5003   0.527       0.488 -0.0589     0.181
+    # A tibble: 3 x 5
+      id  ability  ability_psd   speed  speed_psd
+    5001    0.849        0.500  -0.122      0.182
+    5002   -1.161        0.513   0.248      0.182
+    5003    0.527        0.488  -0.059      0.181
 
 ``` r
 reliability(fit)
 ```
 
-      ability     speed 
-    0.7513654 0.9657718 
+    ability   speed 
+      0.751   0.966 
 
 **逐行說明**
 
@@ -604,7 +1015,8 @@ reliability(fit)
 **輸出怎麼讀**
 
 - `estimates()`：
-  - 表格是 tibble，最左邊的 1、2、3 是挑出來之後重新編的列號，不是在完整參數表裡的位置；
+  - 表格是 tibble（一種資料框）。第一行 `# A tibble: 3 x 7` 是說這張表有 3 列、7 欄；
+  - 所有的表都印到小數 3 位，但存的是完整的值：`estimates(fit)$est` 取出來的數字沒有四捨五入；
   - `parameter` 是參數名稱，方括號裡是題名；
   - `est` 估計值、`se` 標準誤、`z` 是 z 值；
   - `q025` 與 `q975` 是 Wald 95% 區間的兩端，也就是 est ± 1.96 × se。名字借自 Gibbs 的 2.5 與 97.5 百分位數（第 5 節）；
@@ -614,7 +1026,7 @@ reliability(fit)
   - `ability`、`speed` 是 EAP；`ability_psd`、`speed_psd` 是 PSD；
   - 例如 ID 5001：能力約 0.85（PSD 0.50），速度約 −0.12（PSD 0.18）；
   - 速度的 PSD 比能力小很多。這就是速度的信度比較高的原因。
-- `reliability()`：能力 0.751、速度 0.966，和 `fit` 摘要裡的 Reliability 相同（多印幾位小數）。
+- `reliability()`：能力 0.751、速度 0.966，和 `fit` 摘要裡的 Reliability 相同。
 
 **`pars` 的文字樣式**（正規表示式）只要會這幾個符號：
 
@@ -639,9 +1051,9 @@ anova(f0, fit)
     f0: model = "null" (rtirt_null)
     fit: model = "cross" (rtirt_cross)
 
-        npar     logLik      AIC      BIC    Chisq Df Pr(>Chisq)    
-    f0    42 -10120.968 20325.94 20510.61                           
-    fit   51  -9946.565 19995.13 20219.37 348.8057  9 < 2.22e-16 ***
+         npar      logLik        AIC        BIC    Chisq  Df  Pr(>Chisq)
+    f0     42  -10120.968  20325.936  20510.607
+    fit    51   -9946.565  19995.130  20219.374  348.806   9      <0.001  ***
     ---
     Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -654,8 +1066,8 @@ anova(f0, fit)
 
 - 最上面列出每一列是哪個模型（`f0` 是 `model = "null"`，`fit` 是 `model = "cross"`）。表格依參數個數由少到多排列。
 - `npar`：參數個數。`null` 少了 10 個 ρ，多了 1 個能力與速度的相關，所以少 9 個參數（42 對 51）。
-- `logLik`：對數概似。`cross` 的 logLik 大很多（−9946.6 對 −10121.0）。
-- `AIC`、`BIC`：`cross` 的 AIC（19995 對 20326）、BIC（20219 對 20511）都比較小。所以交叉關係模型比較好。AIC、BIC 不需要巢套，任何同一份資料的模型都能比。
+- `logLik`：對數概似。`cross` 的 logLik 大很多（−9946.565 對 −10120.968）。
+- `AIC`、`BIC`：`cross` 的 AIC（19995.130 對 20325.936）、BIC（20219.374 對 20510.607）都比較小。所以交叉關係模型比較好。AIC、BIC 不需要巢套，任何同一份資料的模型都能比。
 - `Chisq`、`Df`、`Pr(>Chisq)`：概似比檢定，下面解釋。
 
 **概似比檢定**
@@ -665,9 +1077,9 @@ anova(f0, fit)
 - 這種「一個模型是另一個模型加上限制」的關係叫**巢套**（nested）。巢套的兩個模型可以做概似比檢定。
 - 這裡檢定的是：「各題的 ρ 都一樣」這個限制成不成立。
 - `anova()` 算的是：
-  - `Chisq`：概似比統計量 LR = 2 ×（大模型的 logLik − 小模型的 logLik），約 348.8；
+  - `Chisq`：概似比統計量 LR = 2 ×（大模型的 logLik − 小模型的 logLik），348.806；
   - `Df`：自由度 = 兩個模型的參數個數差，9；
-  - `Pr(>Chisq)`：卡方分配的右尾機率，就是 p 值。`< 2.22e-16` 表示比 2.22 × 10⁻¹⁶ 還小（R 能分辨的最小差距），也就是非常接近 0。後面的 `***` 是顯著性標記（最下面一行 `Signif. codes` 是對照表）。
+  - `Pr(>Chisq)`：卡方分配的右尾機率，就是 p 值。`<0.001` 表示 p 值小於 0.001（p 值都印到小數 3 位，更小的就印成 `<0.001`），也就是非常接近 0。後面的 `***` 是顯著性標記（最下面一行 `Signif. codes` 是對照表）。
 - 所以「各題的 ρ 都一樣」不成立：能力影響作答時間的方向和大小，題目之間不同。
 - `anova()` 只檢查兩個模型是不是同一份資料，不會檢查是不是巢套；不巢套的模型請只看 AIC、BIC。參數比較多、logLik 卻比較小時，`anova()` 會警告。
 
@@ -726,18 +1138,18 @@ round(cbind(true = rho_true, ecm = rho_ecm), 3)
     [10,] -0.079 -0.102
 
 ``` r
-c(bias = mean(rho_ecm - rho_true), rmse = sqrt(mean((rho_ecm - rho_true)^2)))
+round(c(bias = mean(rho_ecm - rho_true), rmse = sqrt(mean((rho_ecm - rho_true)^2))), 3)
 ```
 
-           bias        rmse 
-    -0.04580283  0.05127748 
+      bias   rmse 
+    -0.046  0.051 
 
 **逐行說明**
 
 1.  `attr(sim, "true_para")`：取出真值。`$rho` 是 10 題的 ρ。
 2.  ECM 估計的 ρ。
 3.  並排，取到小數 3 位。
-4.  `bias`：平均偏誤。`rmse`：均方根誤差。
+4.  `bias`：平均偏誤。`rmse`：均方根誤差。一樣取到小數 3 位。
 
 **輸出怎麼讀**
 
@@ -791,10 +1203,10 @@ g
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      3 chains x 2000 iterations (burn-in 1000, thin 1); 5.1 s
+      3 chains x 2000 iterations (burn-in 1000, thin 1); 6.6 s
       Reliability: ability 0.745, speed 0.962
-      Marginal: DIC 19994.8 (pD 50.7), WAIC 19995.8, LOOIC 19996.5
-      Warning: only 98.0% of 51 parameters have ESS > 400 and R-hat < 1.05 (max R-hat 1.02, min ESS 396); run longer (n_iter) or see convergence()
+      Marginal: DIC 19994.783 (pD 50.697), WAIC 19995.756, LOOIC 19996.484
+      Warning: only 98.0% of 51 parameters have ESS > 400 and R-hat < 1.05 (max R-hat 1.015, min ESS 396); run longer (n_iter) or see convergence()
     Use summary(), coef(), scores(), estimates(), convergence(), fit_indices(), plot().
 
 **逐行說明**
@@ -817,8 +1229,8 @@ g
 - `Reliability`：用後驗算的信度。能力 0.745、速度 0.962，和 ECM 的 0.751、0.966 很接近。
 - `Marginal`：三種貝氏的模型比較指標（DIC、WAIC、LOOIC）。
   - 用法和 AIC 一樣，愈小愈好。
-  - 這裡 DIC 是 19994.8，和 ECM 的 AIC 19995.1 幾乎一樣。
-  - 括號裡的 `pD` 是「有效參數個數」，這裡 50.7，和 `npar` 51 差不多。
+  - 這裡 DIC 是 19994.783，和 ECM 的 AIC 19995.130 幾乎一樣。
+  - 括號裡的 `pD` 是「有效參數個數」，這裡 50.697，和 `npar` 51 差不多。
 - 最後一行列出可以用的函數。
 - 如果有參數沒有達到 `convergence()` 的標準（ESS \> 400 而且 R̂ \< 1.05），或只跑了一條鏈（算不出 R̂），這裡會多一行 `Warning`。這次有一行：51 個參數裡只有 98.0% 過關（下面的 `convergence()` 會列出是哪一個）。教學為了快只跑 2000 次；正式分析把 `n_iter` 加大，警告就會消失。沒有警告，才表示每個參數都過了這個標準。
 
@@ -861,12 +1273,11 @@ round(data.frame(ecm = re$est, se = re$se, gibbs = rg$est, post_sd = rg$sd), 3)
 head(estimates(g, pars = "^rho"), 3)
 ```
 
-    # A tibble: 3 × 8
-      parameter      est     sd    q025   q975  rhat   ess sig  
-      <chr>        <dbl>  <dbl>   <dbl>  <dbl> <dbl> <int> <chr>
-    1 rho[item01]  0.120 0.0558  0.0114  0.230  1.00  1611 *    
-    2 rho[item02] -0.215 0.0533 -0.320  -0.109  1.00  1588 *    
-    3 rho[item03]  0.197 0.0548  0.0905  0.306  1.01  1329 *    
+    # A tibble: 3 x 8
+    parameter       est     sd    q025    q975   rhat   ess  sig
+    rho[item01]   0.120  0.056   0.011   0.230  1.002  1611  *
+    rho[item02]  -0.215  0.053  -0.320  -0.109  1.005  1588  *
+    rho[item03]   0.197  0.055   0.090   0.306  1.007  1329  *
 
 ``` r
 convergence(g)
@@ -1051,15 +1462,14 @@ ej <- ecm(dataJ, model = "latreg")
 estimates(ej, pars = "beta|cor|var_speed")
 ```
 
-    # A tibble: 6 × 7
-      parameter             est     se      z   q025    q975 sig  
-      <chr>               <dbl>  <dbl>  <dbl>  <dbl>   <dbl> <chr>
-    1 beta_ability[x1]  -0.0668 0.0431  -1.55 -0.151  0.0177 ""   
-    2 beta_ability[x2]  -0.149  0.0429  -3.46 -0.233 -0.0645 "*"  
-    3 beta_speed[x1]     0.172  0.0203   8.50  0.133  0.212  "*"  
-    4 beta_speed[x2]    -0.317  0.0200 -15.8  -0.357 -0.278  "*"  
-    5 cor_ability_speed -0.392  0.0410  -9.57 -0.469 -0.309  "*"  
-    6 var_speed          0.307  0.0170  NA     0.275  0.342  <NA> 
+    # A tibble: 6 x 7
+    parameter             est     se        z    q025    q975  sig
+    beta_ability[x1]   -0.067  0.043   -1.550  -0.151   0.018
+    beta_ability[x2]   -0.149  0.043   -3.464  -0.233  -0.065  *
+    beta_speed[x1]      0.172  0.020    8.499   0.133   0.212  *
+    beta_speed[x2]     -0.317  0.020  -15.837  -0.357  -0.278  *
+    cor_ability_speed  -0.392  0.041   -9.566  -0.469  -0.309  *
+    var_speed           0.307  0.017            0.275   0.342
 
 **逐行說明**
 
@@ -1092,9 +1502,9 @@ anova(e0, ej)
     e0: model = "null" (rtirt_null)
     ej: model = "latreg" (rtirt_latreg)
 
-       npar    logLik      AIC      BIC    Chisq Df Pr(>Chisq)    
-    e0   42 -13118.53 26321.07 26517.82                           
-    ej   46 -12957.10 26006.21 26221.70 322.8611  4 < 2.22e-16 ***
+        npar      logLik        AIC        BIC    Chisq  Df  Pr(>Chisq)
+    e0    42  -13118.533  26321.066  26517.820
+    ej    46  -12957.103  26006.205  26221.697  322.861   4      <0.001  ***
     ---
     Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1105,9 +1515,9 @@ anova(e0, ej)
 
 **輸出怎麼讀**
 
-- `Chisq`：LR 約 322.9。
+- `Chisq`：LR 是 322.861。
 - `Df`：自由度是 4：能力 2 個、速度 2 個迴歸係數。
-- `Pr(>Chisq)`：p 值非常接近 0（`< 2.22e-16`）。表示共變項有用。
+- `Pr(>Chisq)`：p 值非常接近 0（`<0.001`）。表示共變項有用。
 
 **用 Gibbs 確認**
 
@@ -1145,13 +1555,12 @@ el <- ecm(dataL, model = "latent")
 estimates(el, pars = "beta|b_ability")
 ```
 
-    # A tibble: 4 × 7
-      parameter    est     se     z   q025   q975 sig  
-      <chr>      <dbl>  <dbl> <dbl>  <dbl>  <dbl> <chr>
-    1 beta[x1]   0.147 0.0132  11.2  0.121  0.173 *    
-    2 beta[x2]   0.168 0.0121  13.8  0.144  0.192 *    
-    3 beta[x3]  -0.401 0.0127 -31.6 -0.426 -0.376 *    
-    4 b_ability -0.206 0.0163 -12.6 -0.238 -0.174 *    
+    # A tibble: 4 x 7
+    parameter     est     se        z    q025    q975  sig
+    beta[x1]    0.147  0.013   11.165   0.121   0.173  *
+    beta[x2]    0.168  0.012   13.848   0.144   0.192  *
+    beta[x3]   -0.401  0.013  -31.597  -0.426  -0.376  *
+    b_ability  -0.206  0.016  -12.621  -0.238  -0.174  *
 
 **逐行說明**
 
@@ -1206,11 +1615,10 @@ eg <- ecm(datc, model = "latreg")
 estimates(eg, pars = "beta")
 ```
 
-    # A tibble: 2 × 7
-      parameter                  est     se      z   q025  q975 sig  
-      <chr>                    <dbl>  <dbl>  <dbl>  <dbl> <dbl> <chr>
-    1 beta_ability[gender_c]  0.0109 0.101   0.109 -0.186 0.208 ""   
-    2 beta_speed[gender_c]   -0.0317 0.0822 -0.386 -0.193 0.129 ""   
+    # A tibble: 2 x 7
+    parameter                  est     se       z    q025   q975  sig
+    beta_ability[gender_c]   0.011  0.101   0.109  -0.186  0.208
+    beta_speed[gender_c]    -0.032  0.082  -0.386  -0.193  0.129
 
 **逐行說明**
 
@@ -1325,18 +1733,18 @@ print(score_test(fit, total_logtime, by_item = TRUE))
     the moderator correlates 0.15 with the ability EAPs: differences in mean ability (impact) show up as shifts of every b; to test DIF beyond impact, put the moderator in the latent regression (e.g. ecm(input_data(..., cov = z), model = "latreg"), z centred) and test that fit
 
     Score-based test of parameter invariance (DM test, numeric moderator, block decorrelation)
-     parameters  n statistic p.value p.holm
-       accuracy 20     1.591  0.2248       
-         item01  2     1.569  0.0288  0.288
-         item02  2     1.329  0.1138  0.910
-         item03  2     1.247  0.1706  1.000
-         item04  2     0.814  0.7716  1.000
-         item05  2     0.802  0.7898  1.000
-         item06  2     1.096  0.3287  1.000
-         item07  2     0.761  0.8473  1.000
-         item08  2     1.529  0.0368  0.332
-         item09  2     0.788  0.8092  1.000
-         item10  2     0.764  0.8431  1.000
+    parameters   n  statistic  p.value  p.holm
+    accuracy    20      1.591    0.225
+    item01       2      1.569    0.029   0.288
+    item02       2      1.329    0.114   0.910
+    item03       2      1.247    0.171   1.000
+    item04       2      0.814    0.772   1.000
+    item05       2      0.802    0.790   1.000
+    item06       2      1.096    0.329   1.000
+    item07       2      0.761    0.847   1.000
+    item08       2      1.529    0.037   0.332
+    item09       2      0.788    0.809   1.000
+    item10       2      0.764    0.843   1.000
 
 ``` r
 set.seed(3)
@@ -1344,8 +1752,8 @@ print(score_test(fit, rbinom(nrow(dat$Y), 1, 0.5) == 1))
 ```
 
     Score-based test of parameter invariance (LM test, factor with 2 levels moderator, block decorrelation)
-     parameters  n statistic p.value
-       accuracy 20     18.25   0.571
+    parameters   n  statistic  p.value
+    accuracy    20     18.250    0.571
 
 **逐行說明**
 
@@ -1389,22 +1797,23 @@ pf <- person_fit(g)
 head(pf, 3)
 ```
 
-        id        lt df       p_flag flagged
-    1 5001 11.937573 10 0.0116666667   FALSE
-    2 5002  7.100136 10 0.0003333333   FALSE
-    3 5003  7.490158 10 0.0000000000   FALSE
+    # A data frame: 3 x 5
+      id      lt  df  p_flag  flagged
+    5001  11.938  10   0.012  FALSE
+    5002   7.100  10   0.000  FALSE
+    5003   7.490  10   0.000  FALSE
 
 ``` r
-attr(pf, "share")
+round(attr(pf, "share"), 3)
 ```
 
-    [1] 0.01333333
+    [1] 0.013
 
 **逐行說明**
 
 1.  `person_fit(g)`：每個人的作答時間適配統計量 $l^t$（Marianti et al., 2014）。
 2.  看前 3 人。
-3.  被判為不適配的比例。
+3.  被判為不適配的比例，取到小數 3 位。
 
 **輸出怎麼讀**
 
@@ -1415,7 +1824,7 @@ attr(pf, "share")
   - `p_flag`：「這個人不適配」的後驗機率，也就是 lt 超過卡方分配 95 百分位數（自由度 10 時約 18.3）的機率；
   - `flagged`：`p_flag` ≥ .95，也就是被判為不適配。
 - 前 3 人的 lt 是 11.9、7.1、7.5，都不大。`p_flag` 都接近 0，所以 `flagged` 都是 `FALSE`。
-- 最後一行是被判為不適配的人占多少比例：0.0133，也就是 1.3%（600 人中 8 人）。資料是照模型模擬的，所以比例很小。
+- 最後一行是被判為不適配的人占多少比例：0.013，也就是 1.3%（600 人中 8 人）。資料是照模型模擬的，所以比例很小。
 
 不適配可能表示亂猜、事先看過題目、時間不夠，或作答速度中途改變。
 
@@ -1435,11 +1844,11 @@ one_rep <- function(r) {
   c(bias = mean(est - tpS$rho), rmse = sqrt(mean((est - tpS$rho)^2)))
 }
 res_ecm <- t(sapply(1:20, one_rep))
-colMeans(res_ecm)
+round(colMeans(res_ecm), 3)
 ```
 
-          bias       rmse 
-    0.01296354 0.04435004 
+     bias  rmse 
+    0.013 0.044 
 
 **逐行說明**
 
@@ -1452,7 +1861,7 @@ colMeans(res_ecm)
 7.  回傳這一次的平均偏誤與均方根誤差。
 8.  函數結束。
 9.  `sapply(1:20, one_rep)`：做 20 次。`t()` 轉成一列一次重複。
-10. `colMeans()`：20 次的平均。
+10. `colMeans()`：20 次的平均；`round(..., 3)` 取到小數 3 位。
 
 **輸出怎麼讀**
 
@@ -1467,13 +1876,13 @@ colMeans(res_ecm)
 ``` r
 condG <- set_cond(n_subj = 400, n_item = 8, n_iter = 1200, n_chain = 2, n_rep = 3)
 res <- run_simulation(condG, tpS, "cross", pars = c("a", "rho", "ability"))
-aggregate(cbind(bias, rmse, corr) ~ par, data = res, FUN = mean)
+aggregate(cbind(bias, rmse, corr) ~ par, data = res, FUN = function(x) round(mean(x), 3))
 ```
 
-          par         bias       rmse      corr
-    1       a -0.007937189 0.15673690 0.6928458
-    2 ability  0.023748292 0.55829626 0.8373797
-    3     rho -0.029870272 0.07205989 0.9879336
+          par   bias  rmse  corr
+    1       a -0.008 0.157 0.693
+    2 ability  0.024 0.558 0.837
+    3     rho -0.030 0.072 0.988
 
 **逐行說明**
 
@@ -1483,7 +1892,7 @@ aggregate(cbind(bias, rmse, corr) ~ par, data = res, FUN = mean)
     - 結果 `res` 是一個資料框：每次重複、每種參數各一列，欄位有 `rep`（第幾次）、`par`、`bias`、`rmse`、`corr` 等。
 3.  `aggregate()`：把 3 次重複平均起來。
     - `cbind(bias, rmse, corr) ~ par` 的意思是：依 `par` 分組，對 `bias`、`rmse`、`corr` 三欄做計算；
-    - `FUN = mean`：計算的方式是平均。
+    - `FUN = function(x) round(mean(x), 3)`：計算的方式是平均，再取到小數 3 位。`function(x) ...` 是當場寫的一個小函數。
 
 **輸出怎麼讀**
 
@@ -1603,9 +2012,9 @@ anova(fitE0, fitE)
     fitE0: model = "null" (rtirt_null)
     fitE: model = "latreg" (rtirt_latreg)
 
-          npar    logLik      AIC      BIC  Chisq Df Pr(>Chisq)    
-    fitE0   34 -3644.784 7357.567 7483.268                         
-    fitE    40 -3605.826 7291.651 7439.535 77.916  6 9.6206e-15 ***
+           npar     logLik       AIC       BIC   Chisq  Df  Pr(>Chisq)
+    fitE0    34  -3644.784  7357.567  7483.268
+    fitE     40  -3605.826  7291.651  7439.535  77.916   6      <0.001  ***
     ---
     Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1613,15 +2022,14 @@ anova(fitE0, fitE)
 estimates(fitE, pars = "beta")
 ```
 
-    # A tibble: 6 × 7
-      parameter                    est     se       z     q025   q975 sig  
-      <chr>                      <dbl>  <dbl>   <dbl>    <dbl>  <dbl> <chr>
-    1 beta_ability[anxiety_z] -0.596   0.0797 -7.48   -0.752   -0.440 "*"  
-    2 beta_ability[groupB_c]   0.329   0.175   1.88   -0.0143   0.673 ""   
-    3 beta_ability[groupC_c]  -0.00296 0.173  -0.0171 -0.342    0.336 ""   
-    4 beta_speed[anxiety_z]    0.0570  0.0329  1.73   -0.00756  0.122 ""   
-    5 beta_speed[groupB_c]     0.0618  0.0800  0.773  -0.0949   0.219 ""   
-    6 beta_speed[groupC_c]     0.0515  0.0799  0.645  -0.105    0.208 ""   
+    # A tibble: 6 x 7
+    parameter                   est     se       z    q025    q975  sig
+    beta_ability[anxiety_z]  -0.596  0.080  -7.481  -0.752  -0.440  *
+    beta_ability[groupB_c]    0.329  0.175   1.879  -0.014   0.673
+    beta_ability[groupC_c]   -0.003  0.173  -0.017  -0.342   0.336
+    beta_speed[anxiety_z]     0.057  0.033   1.730  -0.008   0.122
+    beta_speed[groupB_c]      0.062  0.080   0.773  -0.095   0.219
+    beta_speed[groupC_c]      0.052  0.080   0.645  -0.105   0.208
 
 ``` r
 report <- merge(people, scores(fitE), by.x = "pid", by.y = "id")
@@ -1746,17 +2154,17 @@ print(check_sampler(fC, seed = 1))
      200000 iterations (first 10% dropped); P(parameter <= prior quantile) in the chain vs 100000 prior draws
       70 comparisons; smallest Holm-adjusted p = 0.278: no evidence against the sampler
 
-           parameter prob prior sampler  ess    z p.value p.holm
-     sigma2t[item02] 0.10  0.10   0.123 1485 2.88 0.00397  0.278
-     sigma2t[item02] 0.25  0.25   0.279 1699 2.72 0.00653  0.451
-      lambda[item02] 0.90  0.90   0.932  624 2.66 0.00783  0.533
-     sigma2t[item02] 0.50  0.50   0.525 2693 2.55 0.01087  0.728
-      lambda[item02] 0.75  0.75   0.800  454 2.45 0.01411  0.931
-           b[item01] 0.25  0.25   0.267 3853 2.36 0.01804  1.000
-           b[item01] 0.50  0.50   0.520 3558 2.34 0.01908  1.000
-           b[item01] 0.10  0.10   0.110 5117 2.22 0.02644  1.000
-     sigma2t[item02] 0.75  0.75   0.766 3895 2.20 0.02812  1.000
-      lambda[item03] 0.10  0.10   0.127  459 1.95 0.05069  1.000
+    parameter         prob  prior  sampler   ess      z  p.value  p.holm
+    sigma2t[item02]  0.100  0.100    0.123  1485  2.880    0.004   0.278
+    sigma2t[item02]  0.250  0.250    0.279  1699  2.720    0.007   0.451
+    lambda[item02]   0.900  0.900    0.932   624  2.659    0.008   0.533
+    sigma2t[item02]  0.500  0.500    0.525  2693  2.547    0.011   0.728
+    lambda[item02]   0.750  0.750    0.800   454  2.455    0.014   0.931
+    b[item01]        0.250  0.250    0.267  3853  2.365    0.018   1.000
+    b[item01]        0.500  0.500    0.520  3558  2.344    0.019   1.000
+    b[item01]        0.100  0.100    0.110  5117  2.220    0.026   1.000
+    sigma2t[item02]  0.750  0.750    0.766  3895  2.196    0.028   1.000
+    lambda[item03]   0.100  0.100    0.127   459  1.954    0.051   1.000
 
       Note: the smallest effective sample size is 339; with fewer than about 400 the z-tests are unreliable,
       so raise n_iter (or narrow the priors of the slow parameters, the check holds for any proper prior).
