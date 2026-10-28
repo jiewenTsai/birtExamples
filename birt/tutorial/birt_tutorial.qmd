@@ -1059,8 +1059,12 @@ for (v in times) ds[[v]] <- pmin(exp(d[[v]]), 120)
 lim <- setNames(rep(list(c(upper = 120)), 10), times)
 fcen <- birt(model, ds, log_rt = TRUE, censor = lim)
 fnai <- birt(model, ds, log_rt = TRUE)
-pick <- function(f) { e <- estimates(f); e <- e[e$op %in% c("~1", "~~") & e$lhs %in% c("t1", "t10", "speed") & (e$op == "~1" | e$lhs == e$rhs), ]
-  setNames(round(e$est, 3), paste(e$lhs, e$op)) }
+pick <- function(f) {
+  e <- estimates(f)
+  keep <- e$op %in% c("~1", "~~") & e$lhs %in% c("t1", "t10", "speed") & (e$op == "~1" | e$lhs == e$rhs)
+  e <- e[keep, ]
+  setNames(round(e$est, 3), paste(e$lhs, e$op))
+}
 rbind(complete = pick(fit), censored = pick(fcen), naive = pick(fnai))
 ```
 

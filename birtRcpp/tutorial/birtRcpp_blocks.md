@@ -1,6 +1,6 @@
 # birtRcpp 積木
 Jie-Wen Tsai
-2026-10-08
+2026-10-28
 
 - [0. 這份教學怎麼讀](#0-這份教學怎麼讀)
 - [1. 一個完整條件分配，三種用法](#1-一個完整條件分配三種用法)
@@ -16,6 +16,10 @@ Jie-Wen Tsai
 - [附錄 A：JAGS → 宣告](#附錄-ajags--宣告)
 - [附錄 B：函數一覽](#附錄-b函數一覽)
 - [參考文獻](#參考文獻)
+
+> [!WARNING]
+>
+> **已廢止，不推薦用於新的分析。** `block_model()`、`step_gibbs()`／`step_mala()`／`step_shift()`、`vi()`、`mml()` 仍可用（每個 session 警告一次），但不再加功能。內建模型請用 `ecm(dat, model = "cross")`、`gibbs(dat, model = "cross", init = fit_ecm)`；新模型會加進這個選單。這份教學保留給已經在用積木的人。
 
 ## 0. 這份教學怎麼讀
 
@@ -494,7 +498,7 @@ round(c(adaptive_seconds = t_adapt, ba81_seconds = t_ba81), 2)
 ```
 
     adaptive_seconds     ba81_seconds 
-                0.32             0.14 
+                0.32             0.16 
 
 **逐行說明**
 
@@ -512,7 +516,7 @@ round(c(adaptive_seconds = t_adapt, ba81_seconds = t_ba81), 2)
 - 第二段：`gap` 是 1.17e-06。`e-06` 是科學記號，意思是 × 10⁻⁶，所以非常接近 0。
   - 兩種擺法在這份資料給同一個答案。
   - `gap` 超過 0.5 時，`ecm()` 會警告：共用的點不夠密。
-- 第三段：這份資料 ba81 約 0.1 秒，自適應約 0.3 秒。
+- 第三段：這份資料 ba81 約 0.2 秒，自適應約 0.3 秒。
 - ba81 為什麼快：
   - 作答只透過 θ 和每個人有關。
   - 大家用同一組點，所以在同一個點上，所有人的 η 都一樣。
@@ -528,7 +532,7 @@ fit_g <- gibbs(m2pl, steps, n_iter = 2000)
 fit_g
 ```
 
-    Gibbs for the declared model: 2 chains x 2000 iterations (burn-in 1000, thin 1), 3.9 s
+    Gibbs for the declared model: 2 chains x 2000 iterations (burn-in 1000, thin 1), 4.1 s
      parameter   mean     sd    q2.5    q97.5 rhat ess
           a[1]  0.468 0.1322  0.2375  0.74960 1.05  57
           a[2]  0.740 0.1601  0.4409  1.07771 1.00  91
@@ -590,7 +594,7 @@ fit_v <- vi(m2pl, steps)
 fit_v
 ```
 
-    CAVI for the declared model: converged after 342 sweeps (3 rounds), ELBO -2439.6597, 1.9 s
+    CAVI for the declared model: converged after 342 sweeps (3 rounds), ELBO -2439.6597, 2.1 s
      parameter   mean     sd
           a[1]  0.497 0.0317
           a[2]  0.789 0.0481
@@ -711,7 +715,7 @@ round(c(ecm = t_adapt, gibbs = fit_g$time, cavi = fit_v$time), 1)
 ```
 
       ecm gibbs  cavi 
-      0.3   3.9   1.9 
+      0.3   4.1   2.1 
 
 **逐行說明**
 
@@ -733,7 +737,7 @@ round(c(ecm = t_adapt, gibbs = fit_g$time, cavi = fit_v$time), 1)
   - CAVI 的 SD **明顯太小**。例如 a\[10\]：CAVI 0.051，另外兩欄是 0.331 和 0.324。
   - 原因：CAVI 假設參數之間互相獨立，忽略了 a 和 b、a 和 θ 之間的相關。
   - 這是平均場變分法的已知性質。
-- **時間：** 最後一行，單位是秒。這份資料 ECM 約 0.3 秒、Gibbs 約 3.9 秒、CAVI 約 1.9 秒。
+- **時間：** 最後一行，單位是秒。這份資料 ECM 約 0.3 秒、Gibbs 約 4.1 秒、CAVI 約 2.1 秒。
 - **怎麼選：**
   - 要點估計與標準誤（大多數情況）：ECM。
   - 要區間、要完整的後驗：Gibbs。
@@ -1104,7 +1108,7 @@ round(c(gibbs = fit_g$time, with_mala = fit_gm$time), 1)
 ```
 
         gibbs with_mala 
-          3.9       6.3 
+          4.1       7.0 
 
 **逐行說明**
 
@@ -1117,10 +1121,10 @@ round(c(gibbs = fit_g$time, with_mala = fit_gm$time), 1)
 
 - 表最左邊的數字是列號。
 - ESS：四個極端題的參數 ESS 都變大。例如 a\[10\] 從 21 變成 93。
-- 時間：每次疊代比較慢，從約 3.9 秒變成約 6.3 秒。
+- 時間：每次疊代比較慢，從約 4.1 秒變成約 7 秒。
 - 值不值得，要看「每秒多少 ESS」：
-  - a\[10\]：從約 5.5 變成約 14.7，划算。
-  - a\[1\]：從約 14.8 變成約 11.4，ESS 雖然變大，每秒的 ESS 反而變少。
+  - a\[10\]：從約 5.1 變成約 13.3，划算。
+  - a\[1\]：從約 13.8 變成約 10.3，ESS 雖然變大，每秒的 ESS 反而變少。
 - ESS 仍然不到 100，還是要跑久一點。
 
 ### 只靠先驗決定的方向：`step_shift()`
@@ -1396,7 +1400,7 @@ round(c(declared_gibbs = g_rt$time, declared_cavi = v_rt$time), 1)
 ```
 
     declared_gibbs  declared_cavi 
-              10.4            1.9 
+              11.6            2.3 
 
 **逐行說明**
 
@@ -1416,7 +1420,7 @@ round(c(declared_gibbs = g_rt$time, declared_cavi = v_rt$time), 1)
 - 現成與宣告的 Gibbs 只差抽樣誤差。
 - ECM 是最大概似估計，Gibbs 是後驗平均數。這份資料 600 人，先驗的影響小，四欄最多差 0.004。
 - CAVI 的平均數也接近。
-- 時間：宣告的 Gibbs 約 10 秒，CAVI 約 2 秒。
+- 時間：宣告的 Gibbs 約 12 秒，CAVI 約 2 秒。
 
 **為什麼 Gibbs 要給起始值：**
 
@@ -1690,7 +1694,7 @@ round(c(ecm_seconds = t_ecm, mml_seconds = t_mml), 1)
 ```
 
     ecm_seconds mml_seconds 
-            8.8         0.3 
+           10.5         0.4 
 
 ``` r
 n_log$loglik - e_log$loglik
@@ -1721,7 +1725,7 @@ round(cbind(ecm_est = e_log$estimates$est, mml_est = n_log$estimates$est,
 
 **輸出怎麼讀**
 
-- 第一段：這個例子 `mml()` 快很多（約 0.3 秒，ECM 約 8.8 秒）。ECM 的 la 沒有公式的眾數，只能慢慢爬。
+- 第一段：這個例子 `mml()` 快很多（約 0.4 秒，ECM 約 10.5 秒）。ECM 的 la 沒有公式的眾數，只能慢慢爬。
 - 第二段：目標值的差是 6.73e-10。`e-08` 是 × 10⁻⁸，幾乎是 0：兩種方法到達同一個最大值。
 - 第三段：估計值和標準誤也相同（到小數第 3 位）。
 - 每一塊都有公式的眾數時，反而是 ECM 比較快。我們另外試過第 6 節的作答加時間模型，1000 人 × 20 題：

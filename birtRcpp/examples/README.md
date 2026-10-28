@@ -23,7 +23,7 @@ Rscript ex01_quickstart.R
 
 | 檔案 | 內容 | 額外需要 | 執行時間* |
 |---|---|---|---|
-| [ex07_blocks.R](ex07_blocks.R) | 用積木在 R 裡寫一個抽樣器：`rtirt_cross()` 的 Gibbs，一步一步寫 | | 2 秒 |
+| [ex07_blocks.R](ex07_blocks.R) | 用積木在 R 裡寫一個抽樣器：`gibbs(model = "cross")` 的 Gibbs，一步一步寫 | | 2 秒 |
 | [ex08_testlet.R](ex08_testlet.R) | 題組模型（Bradlow, Wainer & Wang, 1999） | | 14 秒 |
 | [ex09_mirt_rt.R](ex09_mirt_rt.R) | 補償型多向度 IRT 加作答時間（Man, Harring, Jiao & Zhan, 2019） | | 25 秒 |
 | [ex10_conditional_dependence.R](ex10_conditional_dependence.R) | 作答時間與作答的條件相依（Bolsinova, De Boeck & Tijmstra, 2017） | | 9 秒 |

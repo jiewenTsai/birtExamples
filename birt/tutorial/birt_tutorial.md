@@ -1,6 +1,6 @@
 # birt 使用教學
 Jie-Wen Tsai
-2026-10-08
+2026-10-28
 
 - [0. 安裝與名詞](#0-安裝與名詞)
 - [1. 快速開始：第一個 ELGM 模型](#1-快速開始第一個-elgm-模型)
@@ -162,7 +162,7 @@ fit
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 24 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
       Reliability: ability 0.760, speed 0.861
@@ -195,7 +195,7 @@ summary(fit)
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 24 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -655,7 +655,7 @@ print(s, tables = "fit")
     birt 0.1.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 24 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 26 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on lsd2, atr, Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -1039,7 +1039,7 @@ r_s
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 37 s
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 36 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on eps2, ldl2, Gaussian in 44 directions (81 nodes)
       log marginal likelihood -6872.74; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863
@@ -1071,7 +1071,7 @@ r_s
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 57 s
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 59 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 13 on eps2, ldl2, Gaussian in 44 directions (169 nodes)
       log marginal likelihood -6872.71; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863
@@ -1651,8 +1651,12 @@ for (v in times) ds[[v]] <- pmin(exp(d[[v]]), 120)
 lim <- setNames(rep(list(c(upper = 120)), 10), times)
 fcen <- birt(model, ds, log_rt = TRUE, censor = lim)
 fnai <- birt(model, ds, log_rt = TRUE)
-pick <- function(f) { e <- estimates(f); e <- e[e$op %in% c("~1", "~~") & e$lhs %in% c("t1", "t10", "speed") & (e$op == "~1" | e$lhs == e$rhs), ]
-  setNames(round(e$est, 3), paste(e$lhs, e$op)) }
+pick <- function(f) {
+  e <- estimates(f)
+  keep <- e$op %in% c("~1", "~~") & e$lhs %in% c("t1", "t10", "speed") & (e$op == "~1" | e$lhs == e$rhs)
+  e <- e[keep, ]
+  setNames(round(e$est, 3), paste(e$lhs, e$op))
+}
 rbind(complete = pick(fit), censored = pick(fcen), naive = pick(fnai))
 ```
 
@@ -2018,7 +2022,7 @@ summary(mn)
       Distributions: SA: normal (log sd ~ logT); 8 ordinal: grm (categories 3/4)
       Covariates: logT
       Moderators: logT (shift logT: free 2; loading logT: equal 8)
-      Approximate Bayes (ELGM; W = person latents): 36 parameters; 6 s
+      Approximate Bayes (ELGM; W = person latents): 36 parameters; 5 s
         inner: AGHQ (k = 21) per person; outer: AGHQ, k = 11 on alpha1, Gaussian in 35 directions (11 nodes)
       log marginal likelihood -5171.77; -2logL at the posterior mode 10133.0
 
@@ -2446,7 +2450,7 @@ jfit
     birt 0.1.0 [M2b]
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 25 s
+      JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 17 s
       Reliability: ability 0.805, speed 0.822
       LOOIC 13174.6 (SE 114.1), WAIC 13174.3, DIC 13176.0
     Use summary() for the parameter table.

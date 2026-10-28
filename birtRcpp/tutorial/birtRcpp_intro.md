@@ -1,6 +1,6 @@
 # birtRcpp 入門
 Jie-Wen Tsai
-2026-10-08
+2026-10-28
 
 - [0. 這份教學怎麼讀](#0-這份教學怎麼讀)
 - [1. 載入](#1-載入)
@@ -26,8 +26,8 @@ Jie-Wen Tsai
 **會學到什麼：** 用 birtRcpp 現成的模型，分析「作答對錯」加上「作答時間」的資料。主線只有四步：
 
 1.  整理資料：`input_data()`；
-2.  選模型：例如 `rtirt_cross()`；
-3.  估計：`ecm()`；
+2.  選模型並估計：例如 `ecm(dat, model = "cross")`；`model =` 是模型的名字；
+3.  估計的方法：`ecm()`；
 4.  看結果：`summary()` 等。
 
 需要下面三件事的時候，再做第五步：
@@ -36,7 +36,7 @@ Jie-Wen Tsai
 - 分位數模型：不看平均的作答時間，改看作答時間偏長（或偏短）的那一端，見第 8 節；
 - 作答時間異常檢定：找出作答時間不像模型預期的人，見第 9 節。
 
-5.  從 ECM 的解出發，用 Gibbs 抽樣：`gibbs(fit, init = "ecm")`。
+5.  從 ECM 的解出發，用 Gibbs 抽樣：`gibbs(dat, model = "cross", init = fit)`。
 
 **為什麼先用 ECM：** `ecm()` 通常幾秒內就算完。它給估計值、標準誤、AIC 與 BIC。大部分的分析，這樣就夠了。
 
@@ -113,7 +113,7 @@ set.seed(2026)
 - `library(birtRcpp)`：載入套件。
 - `set.seed(2026)`：固定亂數種子，讓下面的模擬資料每次都一樣。
 
-**輸出怎麼讀：** 沒有輸出。載入時如果看到 `vi` 被遮蔽（masked）的訊息，可以不理它：birtRcpp 也有一個叫 `vi()` 的函數。
+**輸出怎麼讀：** 沒有輸出。載入時如果看到 `vi` 被遮蔽（masked）的訊息，可以不理它：birtRcpp 也有一個叫 `vi()` 的函數（已不建議使用）。
 
 ## 2. 模型在說什麼
 
@@ -135,16 +135,19 @@ $$
 
 **五個現成的模型**
 
-| 函數 | 模型 | 什麼時候用 |
+模型的名字寫在 `ecm()` 或 `gibbs()` 的 `model =`，例如 `ecm(dat, model = "cross")`。
+
+| `model =` | 模型 | 什麼時候用 |
 |----|----|----|
-| `mlirt(dat)` | 只有作答；能力對共變項做迴歸 | 沒有作答時間 |
-| `rtirt_null(dat)` | 能力與速度有相關，沒有共變項（van der Linden, 2007） | 最基本的「作答 + 時間」模型 |
-| `rtirt_latreg(dat)` | 能力、速度**各自**對共變項做迴歸，兩者之間只有相關 | 想知道性別等變項怎麼影響能力與速度 |
-| `rtirt_latent(dat)` | **速度**對共變項和**能力**做迴歸（能力被當成預測速度的變項） | 想知道能力高的人是不是比較快 |
-| `rtirt_cross(dat)` | 每一題都有自己的 ρ（交叉關係）。能力與速度之間不另外估相關，兩者的關係全部由 ρ 表示 | 想知道能力在哪些題目上影響作答時間 |
+| `"irt"` | 只有作答；能力對共變項做迴歸 | 沒有作答時間 |
+| `"null"` | 能力與速度有相關，沒有共變項（van der Linden, 2007） | 最基本的「作答 + 時間」模型 |
+| `"latreg"` | 能力、速度**各自**對共變項做迴歸，兩者之間只有相關 | 想知道性別等變項怎麼影響能力與速度 |
+| `"latent"` | **速度**對共變項和**能力**做迴歸（能力被當成預測速度的變項） | 想知道能力高的人是不是比較快 |
+| `"cross"` | 每一題都有自己的 ρ（交叉關係）。能力與速度之間不另外估相關，兩者的關係全部由 ρ 表示 | 想知道能力在哪些題目上影響作答時間 |
 
 - 五個模型都可以用 `ecm()` 估計，也都可以用 `gibbs()` 估計。
-- `rtirt_latent()` 和 `rtirt_cross()` 還可以加上 `quantile = 0.9`，變成分位數模型。
+- `"latent"` 和 `"cross"` 在 `gibbs()` 裡還可以加上 `quantile = 0.9`，變成分位數模型。
+- 舊版的寫法 `rtirt_cross(dat)`、`mlirt(dat)` 等還能用，但會出現「已不建議使用」的警告。
 - 分位數模型不看「平均的」log 時間，而是看作答時間分配的某個百分位數。例如 0.9 是第 90 百分位數，也就是作答時間偏長的那一端。
 - 分位數模型只能用 `gibbs()`（第 8 節）。
 
@@ -293,7 +296,7 @@ datc <- input_data(resp = items, time = times, cov = "gender_c", id = "pid", dat
 ### 估計
 
 ``` r
-fit <- ecm(rtirt_cross(dat))
+fit <- ecm(dat, model = "cross")
 fit
 ```
 
@@ -302,13 +305,15 @@ fit
       maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.3 s
       logLik -9946.565, npar 51, AIC 19995.1, BIC 20219.4
       Reliability: ability 0.751, speed 0.966
-    Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(fit, init = "ecm") to sample from here.
+    Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model = ..., init = fit) to sample from here.
 
 **逐行說明**
 
-1.  `rtirt_cross(dat)`：選模型。這裡是交叉關係模型，資料是 `dat`。
-2.  `ecm(...)`：用 ECM 求最大概似估計值。全部用預設值。
-3.  `fit`：印出摘要。
+1.  `ecm(dat, model = "cross")`：用 ECM 求最大概似估計值。
+    - 第一個參數是資料 `dat`；
+    - `model = "cross"` 選模型，這裡是交叉關係模型；
+    - 其他設定全部用預設值。
+2.  `fit`：印出摘要。
 
 **輸出怎麼讀**
 
@@ -324,7 +329,7 @@ fit
 - 第 5 行 `Reliability`：能力與速度的 EAP 信度。
   - 算法是 Var(EAP) / \[Var(EAP) + 平均的 PSD²\]。介於 0 到 1，讀法和 α 係數一樣，愈大愈好。
   - 這裡能力 0.751、速度 0.966。速度的信度高很多，因為 10 個連續的作答時間，比 10 個 0/1 作答帶有更多資訊。
-- 最後一行列出可以用的函數。要從這個解開始 Gibbs 抽樣，寫 `gibbs(fit, init = "ecm")`（第 5 節）。
+- 最後一行列出可以用的函數。要從這個解開始 Gibbs 抽樣，寫 `gibbs(dat, model = "cross", init = fit)`（第 5 節）。
 
 ### ECM 在做什麼（進階）
 
@@ -368,7 +373,7 @@ round(head(fit$ecm$trace, 5), 2)
 **輸出怎麼讀**
 
 - 第一個輸出是 18：疊代次數，和摘要的第 3 行一樣。
-- 第二個輸出 `TRUE` 表示收斂：logLik 的相對變化已經小於門檻（`tol`）。如果是 `FALSE`，把 `max_iter` 加大再跑。
+- 第二個輸出 `TRUE` 表示收斂：logLik 的相對變化已經小於門檻（`tol`）。如果是 `FALSE`，把 `max_iter` 加大再跑（見下表）。
 - 第三個輸出是前 5 次疊代之後的 logLik：
   - 第 1 次之後是 −10241.21，第 2 次就升到 −9951.13；
   - 之後每次只再升一點點，最後停在 −9946.565（摘要裡的 logLik）；
@@ -376,16 +381,29 @@ round(head(fit$ecm$trace, 5), 2)
 
 **`ecm()` 的設定**（一般不用改）
 
-| 參數         | 預設    | 意思                                               |
-|--------------|---------|----------------------------------------------------|
-| `max_iter`   | 1000    | 最多疊代幾次                                       |
-| `tol`        | 1e-10   | 收斂門檻：logLik 的相對變化小於它就停              |
-| `nodes`      | 41      | Gauss-Hermite 求積點個數                           |
-| `se`         | `TRUE`  | 要不要算標準誤。`FALSE` 比較快                     |
-| `prior`      | `"ml"`  | `"ml"` 是最大概似；`"map"` 加上先驗（第 6 節）     |
-| `priors`     | `NULL`  | `prior = "map"` 用的先驗，由 `rtirt_priors()` 設定 |
-| `accelerate` | `TRUE`  | 要不要用 SQUAREM 加速                              |
-| `verbose`    | `FALSE` | `TRUE` 時每 10 次疊代印一次 logLik                 |
+直接寫在 `ecm()` 裡的：
+
+| 參數        | 預設     | 意思                                               |
+|-------------|----------|----------------------------------------------------|
+| `model`     | （必填） | 模型的名字（第 2 節的表）                          |
+| `itemtype`  | `"2pl"`  | `"1pl"` 時所有題目的 a 相同                        |
+| `speed_var` | `"free"` | 速度的變異數要不要估計（第 7 節）                  |
+| `cov`       | `NULL`   | 用哪些共變項；`NULL` 是資料裡全部的共變項          |
+| `se`        | `TRUE`   | 要不要算標準誤。`FALSE` 比較快                     |
+| `prior`     | `"ml"`   | `"ml"` 是最大概似；`"map"` 加上先驗（第 6 節）     |
+| `priors`    | `NULL`   | `prior = "map"` 用的先驗，由 `rtirt_priors()` 設定 |
+
+很少改的，放在 `control = ecm_control(...)` 裡：
+
+| 參數         | 預設    | 意思                                  |
+|--------------|---------|---------------------------------------|
+| `max_iter`   | 1000    | 最多疊代幾次                          |
+| `tol`        | 1e-10   | 收斂門檻：logLik 的相對變化小於它就停 |
+| `nodes`      | 41      | Gauss-Hermite 求積點個數              |
+| `accelerate` | `TRUE`  | 要不要用 SQUAREM 加速                 |
+| `verbose`    | `FALSE` | `TRUE` 時每 10 次疊代印一次 logLik    |
+
+例如 `ecm(dat, model = "cross", control = ecm_control(max_iter = 5000))`。
 
 ### 看結果：`summary()`
 
@@ -549,19 +567,23 @@ print(s, tables = c("fit", "parameters"))
 head(estimates(fit, pars = "^rho"), 3)
 ```
 
-         parameter        est         se         z        q025       q975 sig
-    41 rho[item01]  0.1171001 0.05445700  2.150322  0.01036635  0.2238339   *
-    42 rho[item02] -0.2166732 0.05273230 -4.108927 -0.32002660 -0.1133198   *
-    43 rho[item03]  0.1932795 0.05343775  3.616910  0.08854346  0.2980156   *
+    # A tibble: 3 × 7
+      parameter      est     se     z    q025   q975 sig  
+      <chr>        <dbl>  <dbl> <dbl>   <dbl>  <dbl> <chr>
+    1 rho[item01]  0.117 0.0545  2.15  0.0104  0.224 *    
+    2 rho[item02] -0.217 0.0527 -4.11 -0.320  -0.113 *    
+    3 rho[item03]  0.193 0.0534  3.62  0.0885  0.298 *    
 
 ``` r
 head(scores(fit), 3)
 ```
 
-        id    ability ability_psd       speed speed_psd
-    1 5001  0.8489156   0.5002466 -0.12179218 0.1819399
-    2 5002 -1.1611116   0.5131756  0.24827076 0.1824760
-    3 5003  0.5267514   0.4879604 -0.05894611 0.1814417
+    # A tibble: 3 × 5
+         id ability ability_psd   speed speed_psd
+      <int>   <dbl>       <dbl>   <dbl>     <dbl>
+    1  5001   0.849       0.500 -0.122      0.182
+    2  5002  -1.16        0.513  0.248      0.182
+    3  5003   0.527       0.488 -0.0589     0.181
 
 ``` r
 reliability(fit)
@@ -602,25 +624,29 @@ reliability(fit)
 
 ### 模型比較：AIC、BIC 與概似比檢定
 
-交叉關係真的需要嗎？把它和沒有 ρ 的 `rtirt_null()` 比較。
+交叉關係真的需要嗎？把它和沒有 ρ 的 `"null"` 模型比較。
 
 ``` r
-f0 <- ecm(rtirt_null(dat))
-data.frame(model = c("null", "cross"),
-           logLik = c(logLik(f0), logLik(fit)),
-           npar = c(f0$ecm$npar, fit$ecm$npar),
-           AIC = c(AIC(f0), AIC(fit)),
-           BIC = c(BIC(f0), BIC(fit)))
+f0 <- ecm(dat, model = "null")
+tibble::tibble(
+  model = c("null", "cross"),
+  logLik = c(logLik(f0), logLik(fit)),
+  npar = c(f0$ecm$npar, fit$ecm$npar),
+  AIC = c(AIC(f0), AIC(fit)),
+  BIC = c(BIC(f0), BIC(fit))
+)
 ```
 
-      model     logLik npar      AIC      BIC
-    1  null -10120.968   42 20325.94 20510.61
-    2 cross  -9946.565   51 19995.13 20219.37
+    # A tibble: 2 × 5
+      model  logLik  npar    AIC    BIC
+      <chr>   <dbl> <int>  <dbl>  <dbl>
+    1 null  -10121.    42 20326. 20511.
+    2 cross  -9947.    51 19995. 20219.
 
 **逐行說明**
 
-1.  用 ECM 估計 `rtirt_null()`：同一份資料，沒有 ρ，但能力與速度可以有相關。
-2.  把兩個模型的指標並排成一個資料框，一列一個模型。
+1.  用 ECM 估計 `"null"` 模型：同一份資料，沒有 ρ，但能力與速度可以有相關。
+2.  把兩個模型的指標並排成一個表（`tibble::tibble()`，tidyverse 的資料框），一列一個模型。
 3.  `logLik()`：對數概似。
 4.  `f0$ecm$npar`：參數個數。
 5.  `AIC()`。
@@ -635,8 +661,8 @@ data.frame(model = c("null", "cross"),
 
 **概似比檢定**
 
-- `rtirt_null()` 是 `rtirt_cross()` 的特例：10 題的 ρ 都相等時，兩個模型一模一樣。
-- 為什麼？所有題目共用一個 ρ 時，「速度 + ρ × 能力」可以合成一個新的速度。這個新速度和能力有相關，就是 `rtirt_null()` 的相關。
+- `"null"` 是 `"cross"` 的特例：10 題的 ρ 都相等時，兩個模型一模一樣。
+- 為什麼？所有題目共用一個 ρ 時，「速度 + ρ × 能力」可以合成一個新的速度。這個新速度和能力有相關，就是 `"null"` 模型的相關。
 - 這種「一個模型是另一個模型加上限制」的關係叫**巢套**（nested）。巢套的兩個模型可以做概似比檢定。
 - 這裡檢定的是：「各題的 ρ 都一樣」這個限制成不成立。
 
@@ -745,7 +771,7 @@ c(bias = mean(rho_ecm - rho_true), rmse = sqrt(mean((rho_ecm - rho_true)^2)))
 ### 求積點夠不夠（進階）
 
 ``` r
-f61 <- ecm(rtirt_cross(dat), nodes = 61, se = FALSE)
+f61 <- ecm(dat, model = "cross", se = FALSE, control = ecm_control(nodes = 61))
 logLik(f61) - logLik(fit)
 ```
 
@@ -753,7 +779,7 @@ logLik(f61) - logLik(fit)
 
 **逐行說明**
 
-1.  用 61 個求積點重新估計。`se = FALSE` 不算標準誤，比較快。
+1.  用 61 個求積點重新估計。求積點的個數放在 `ecm_control(nodes = )`。`se = FALSE` 不算標準誤，比較快。
 2.  兩次的 logLik 相減。
 
 **輸出怎麼讀**
@@ -777,23 +803,23 @@ logLik(f61) - logLik(fit)
 ### 從 ECM 的解出發
 
 ``` r
-g <- gibbs(fit, n_iter = 2000, n_chain = 3, init = "ecm", seed = 1)
+g <- gibbs(dat, model = "cross", init = fit, n_iter = 2000, n_chain = 3, seed = 1)
 g
 ```
 
     rtirt_cross 
       600 persons x 10 items
-      3 chains x 2000 iterations (burn-in 1000, thin 1); 4.8 s
+      3 chains x 2000 iterations (burn-in 1000, thin 1); 4.9 s
       Reliability: ability 0.745, speed 0.962
       Marginal: DIC 19994.8 (pD 50.7), WAIC 19995.8, LOOIC 19996.5
     Use summary(), coef(), scores(), estimates(), convergence(), fit_indices(), plot().
 
 **逐行說明**
 
-- `gibbs(fit, ...)`：直接把 ECM 的結果 `fit` 交給 `gibbs()`。模型與資料都沿用 `fit` 的。
-  - `n_iter = 2000`：每條鏈 2000 次。前一半（1000 次）自動當 burn-in 丟掉；要自己指定，寫 `n_burnin = 500`。教學裡為了快才設得這麼小，實際分析請用 10000 以上。
+- `gibbs(dat, model = "cross", ...)`：和 `ecm()` 一樣，給資料與模型的名字。
+  - `init = fit`：每條鏈從 ECM 的估計值與 EAP 附近出發。`fit` 必須是同一份資料、同一個模型的 `ecm()` 結果。起點已經在後驗的中心附近，所以 burn-in 可以短一點。
+  - `n_iter = 2000`：每條鏈 2000 次。前一半（1000 次）自動當 burn-in 丟掉；要自己指定，寫 `control = gibbs_control(n_burnin = 500)`。教學裡為了快才設得這麼小，實際分析請用 10000 以上。
   - `n_chain = 3`：跑 3 條鏈，才能算 R̂。
-  - `init = "ecm"`：每條鏈從 ECM 的估計值與 EAP 附近出發。起點已經在後驗的中心附近，所以 burn-in 可以短一點。
   - `seed = 1`：固定亂數，結果可以重現。
 - `g`：印出摘要。
 
@@ -848,10 +874,12 @@ round(data.frame(ecm = re$est, se = re$se, gibbs = rg$est, post_sd = rg$sd), 3)
 head(estimates(g, pars = "^rho"), 3)
 ```
 
-        parameter        est         sd        q025       q975     rhat  ess sig
-    1 rho[item01]  0.1197324 0.05582717  0.01144206  0.2298798 1.002260 1611   *
-    2 rho[item02] -0.2153816 0.05332206 -0.32028985 -0.1086944 1.004631 1588   *
-    3 rho[item03]  0.1966652 0.05476917  0.09045782  0.3059131 1.007470 1329   *
+    # A tibble: 3 × 8
+      parameter      est     sd    q025   q975  rhat   ess sig  
+      <chr>        <dbl>  <dbl>   <dbl>  <dbl> <dbl> <int> <chr>
+    1 rho[item01]  0.120 0.0558  0.0114  0.230  1.00  1611 *    
+    2 rho[item02] -0.215 0.0533 -0.320  -0.109  1.00  1588 *    
+    3 rho[item03]  0.197 0.0548  0.0905  0.306  1.01  1329 *    
 
 ``` r
 convergence(g)
@@ -945,8 +973,8 @@ plot(g, "trace", pars = "^rho\\[item0[1-4]")
 ``` r
 condSm <- set_cond(n_subj = 120, n_item = 10)
 small <- sim_data(condSm, sim_para(condSm, "null"), "null")
-a_ml <- estimates(ecm(rtirt_null(small), se = FALSE), pars = "^a\\[")$est
-a_map <- estimates(ecm(rtirt_null(small), prior = "map", se = FALSE), pars = "^a\\[")$est
+a_ml <- estimates(ecm(small, model = "null", se = FALSE), pars = "^a\\[")$est
+a_map <- estimates(ecm(small, model = "null", prior = "map", se = FALSE), pars = "^a\\[")$est
 a_true <- attr(small, "true_para")$a
 round(rbind(true = a_true, ml = a_ml, map = a_map), 2)
 ```
@@ -959,7 +987,7 @@ round(rbind(true = a_true, ml = a_ml, map = a_map), 2)
 **逐行說明**
 
 1.  設定只有 120 人、10 題。
-2.  模擬 `rtirt_null` 的資料。
+2.  模擬 `"null"` 模型的資料。
 3.  最大概似的 a。`se = FALSE` 不算標準誤，比較快。
 4.  MAP 的 a。先驗用預設的 N⁺(1, 1)。
 5.  a 的真值。
@@ -980,12 +1008,16 @@ round(rbind(true = a_true, ml = a_ml, map = a_map), 2)
 
 ``` r
 tight <- rtirt_priors(a = c(mean = 1, sd = 0.3), rho = c(sd = 0.1))
-fm <- ecm(rtirt_cross(dat), prior = "map", priors = tight, se = FALSE)
-gt <- gibbs(rtirt_cross(dat), n_iter = 2000, n_chain = 3, seed = 1, init = "ecm",
-            priors = tight, verbose = FALSE, fit_indices = FALSE)
-round(cbind(ml = estimates(fit, pars = "^rho")$est,
-            map_tight = estimates(fm, pars = "^rho")$est,
-            gibbs_tight = estimates(gt, pars = "^rho")$est), 3)
+fm <- ecm(dat, model = "cross", prior = "map", priors = tight, se = FALSE)
+quiet <- gibbs_control(verbose = FALSE, fit_indices = FALSE)
+gt <- gibbs(dat,
+  model = "cross", init = "ecm", priors = tight,
+  n_iter = 2000, n_chain = 3, seed = 1, control = quiet
+)
+rho_ml <- estimates(fit, pars = "^rho")$est
+rho_map <- estimates(fm, pars = "^rho")$est
+rho_gibbs <- estimates(gt, pars = "^rho")$est
+round(cbind(ml = rho_ml, map_tight = rho_map, gibbs_tight = rho_gibbs), 3)
 ```
 
               ml map_tight gibbs_tight
@@ -1004,11 +1036,11 @@ round(cbind(ml = estimates(fit, pars = "^rho")$est,
 
 1.  `rtirt_priors()`：只寫要改的部分，其他維持預設。這裡把 a 的 SD 改成 0.3，ρ 的 SD 改成 0.1。
 2.  `ecm(..., prior = "map", priors = tight)`：用新的先驗求 MAP。
-3.  `gibbs(..., priors = tight)`：用新的先驗抽樣。
-    - 這裡給 `gibbs()` 的是模型 `rtirt_cross(dat)`，不是第 5 節那樣的 ECM 結果。`gibbs()` 兩種都收。
-    - `init = "ecm"`：給的是模型時，`gibbs()` 會先自己跑一次 ECM（最大概似），再從那裡出發。
-    - `verbose = FALSE` 不印進度；`fit_indices = FALSE` 不算模型比較指標，比較快。
-4.  三種結果的 ρ 並排：第 4 節的最大概似、窄先驗的 MAP、窄先驗的 Gibbs。
+3.  `gibbs_control()`：很少改的抽樣設定。`verbose = FALSE` 不印進度；`fit_indices = FALSE` 不算模型比較指標，比較快。
+4.  `gibbs(..., priors = tight)`：用新的先驗抽樣。
+    - `init = "ecm"`：不給 ECM 的結果、只寫 `"ecm"` 時，`gibbs()` 會先自己跑一次 ECM（最大概似），再從那裡出發。
+5.  取出三種結果的 ρ：第 4 節的最大概似、窄先驗的 MAP、窄先驗的 Gibbs。
+6.  並排，取到小數 3 位。
 
 **輸出怎麼讀**
 
@@ -1022,35 +1054,30 @@ round(cbind(ml = estimates(fit, pars = "^rho")$est,
 
 ## 7. 其他現成模型
 
-### 能力與速度各自對共變項做迴歸：`rtirt_latreg()`
+### 能力與速度各自對共變項做迴歸：`model = "latreg"`
 
 ``` r
 condJ <- set_cond(n_subj = 800, n_item = 10, n_feat = 2)
 dataJ <- sim_data(condJ, sim_para(condJ, "latreg", true_corr = -0.3), "latreg")
-ej <- ecm(rtirt_latreg(dataJ))
+ej <- ecm(dataJ, model = "latreg")
 estimates(ej, pars = "beta|cor|var_speed")
 ```
 
-               parameter         est         se          z       q025        q975
-    41  beta_ability[x1] -0.06683285 0.04310529  -1.550456 -0.1513177  0.01765197
-    42  beta_ability[x2] -0.14858413 0.04289624  -3.463803 -0.2326592 -0.06450904
-    43    beta_speed[x1]  0.17230144 0.02027340   8.498891  0.1325663  0.21203658
-    44    beta_speed[x2] -0.31727777 0.02003357 -15.837308 -0.3565428 -0.27801270
-    45 cor_ability_speed -0.39199137 0.04097733  -9.566054 -0.4692018 -0.30883342
-    46         var_speed  0.30670565 0.01701457  18.026057  0.2751067  0.34193408
-       sig
-    41    
-    42   *
-    43   *
-    44   *
-    45   *
-    46   *
+    # A tibble: 6 × 7
+      parameter             est     se      z   q025    q975 sig  
+      <chr>               <dbl>  <dbl>  <dbl>  <dbl>   <dbl> <chr>
+    1 beta_ability[x1]  -0.0668 0.0431  -1.55 -0.151  0.0177 ""   
+    2 beta_ability[x2]  -0.149  0.0429  -3.46 -0.233 -0.0645 "*"  
+    3 beta_speed[x1]     0.172  0.0203   8.50  0.133  0.212  "*"  
+    4 beta_speed[x2]    -0.317  0.0200 -15.8  -0.357 -0.278  "*"  
+    5 cor_ability_speed -0.392  0.0410  -9.57 -0.469 -0.309  "*"  
+    6 var_speed          0.307  0.0170  18.0   0.275  0.342  "*"  
 
 **逐行說明**
 
 1.  設定 800 人、10 題、2 個共變項（`n_feat = 2`）。
 2.  模擬資料。`true_corr = -0.3`：控制共變項之後，能力與速度的真實相關是 −0.3。模擬資料的共變項自動命名為 x1、x2。
-3.  用 ECM 估計 `rtirt_latreg()`。
+3.  用 ECM 估計 `"latreg"` 模型。
 4.  只看迴歸係數（`beta`）、相關（`cor`）與速度的變異數（`var_speed`）。`"beta|cor|var_speed"` 的 `|` 是「或」（見第 4 節的符號表）。
 
 **輸出怎麼讀**
@@ -1065,10 +1092,10 @@ estimates(ej, pars = "beta|cor|var_speed")
 
 **概似比檢定：共變項有沒有用**
 
-`rtirt_null()` 就是 `rtirt_latreg()` 把迴歸係數設成 0 的版本，兩者巢套，可以做概似比檢定（做法同第 4 節）。
+`"null"` 就是 `"latreg"` 把迴歸係數設成 0 的版本，兩者巢套，可以做概似比檢定（做法同第 4 節）。
 
 ``` r
-e0 <- ecm(rtirt_null(dataJ))
+e0 <- ecm(dataJ, model = "null")
 lr <- 2 * (logLik(ej) - logLik(e0))
 dfr <- ej$ecm$npar - e0$ecm$npar
 c(LR = lr, df = dfr, p = pchisq(lr, dfr, lower.tail = FALSE))
@@ -1079,7 +1106,7 @@ c(LR = lr, df = dfr, p = pchisq(lr, dfr, lower.tail = FALSE))
 
 **逐行說明**
 
-1.  同一份資料，估計沒有共變項的 `rtirt_null()`。
+1.  同一份資料，估計沒有共變項的 `"null"` 模型。資料裡的共變項，`"null"` 模型不會用到。
 2.  概似比統計量 LR = 2 ×（大模型的 logLik − 小模型的 logLik）。
 3.  自由度 = 兩個模型的參數個數差。
 4.  `pchisq(lr, dfr, lower.tail = FALSE)`：卡方分配的右尾機率，就是 p 值。
@@ -1093,45 +1120,52 @@ c(LR = lr, df = dfr, p = pchisq(lr, dfr, lower.tail = FALSE))
 **用 Gibbs 確認**
 
 ``` r
-gj <- gibbs(ej, n_iter = 2000, n_chain = 3, init = "ecm", seed = 1, verbose = FALSE)
+gj <- gibbs(dataJ,
+  model = "latreg", init = ej, n_iter = 2000, n_chain = 3, seed = 1,
+  control = gibbs_control(verbose = FALSE)
+)
 ce <- estimates(ej, pars = "cor")
 cg <- estimates(gj, pars = "cor")
-data.frame(method = c("ecm", "gibbs"), estimate = c(ce$est, cg$est), uncertainty = c(ce$se, cg$sd))
+tibble::tibble(method = c("ecm", "gibbs"), estimate = c(ce$est, cg$est), uncertainty = c(ce$se, cg$sd))
 ```
 
-      method   estimate uncertainty
-    1    ecm -0.3919914  0.04097733
-    2  gibbs -0.3905271  0.04062156
+    # A tibble: 2 × 3
+      method estimate uncertainty
+      <chr>     <dbl>       <dbl>
+    1 ecm      -0.392      0.0410
+    2 gibbs    -0.391      0.0406
 
 **逐行說明**
 
-1.  從 ECM 的解 `ej` 出發抽樣。`verbose = FALSE` 不印每條鏈的進度。
+1.  從 ECM 的解 `ej` 出發抽樣。`gibbs_control(verbose = FALSE)` 不印每條鏈的進度。
 2.  ECM 的相關：估計值 `est` 與標準誤 `se`。
 3.  Gibbs 的相關：後驗平均數 `est` 與後驗 SD `sd`。
 4.  並排。`uncertainty` 在 ECM 是標準誤，在 Gibbs 是後驗 SD。
 
 **輸出怎麼讀：** 兩種方法幾乎一樣。ECM 是 −0.392（標準誤 0.041），Gibbs 是 −0.391（後驗 SD 0.041）。
 
-### 速度對共變項與能力做迴歸：`rtirt_latent()`
+### 速度對共變項與能力做迴歸：`model = "latent"`
 
 ``` r
 condL <- set_cond(n_subj = 800, n_item = 10, n_feat = 3)
 dataL <- sim_data(condL, sim_para(condL, "latent"), "latent")
-el <- ecm(rtirt_latent(dataL))
+el <- ecm(dataL, model = "latent")
 estimates(el, pars = "beta|b_ability")
 ```
 
-       parameter        est         se         z       q025       q975 sig
-    41  beta[x1]  0.1468607 0.01315421  11.16454  0.1210790  0.1726425   *
-    42  beta[x2]  0.1680291 0.01213361  13.84824  0.1442477  0.1918106   *
-    43  beta[x3] -0.4008887 0.01268775 -31.59653 -0.4257562 -0.3760212   *
-    44 b_ability -0.2060636 0.01632713 -12.62093 -0.2380642 -0.1740630   *
+    # A tibble: 4 × 7
+      parameter    est     se     z   q025   q975 sig  
+      <chr>      <dbl>  <dbl> <dbl>  <dbl>  <dbl> <chr>
+    1 beta[x1]   0.147 0.0132  11.2  0.121  0.173 *    
+    2 beta[x2]   0.168 0.0121  13.8  0.144  0.192 *    
+    3 beta[x3]  -0.401 0.0127 -31.6 -0.426 -0.376 *    
+    4 b_ability -0.206 0.0163 -12.6 -0.238 -0.174 *    
 
 **逐行說明**
 
 1.  設定 800 人、10 題、3 個共變項。
 2.  模擬資料。
-3.  用 ECM 估計 `rtirt_latent()`。
+3.  用 ECM 估計 `"latent"` 模型。
 4.  只看共變項的效果（`beta`）與能力的效果（`b_ability`）。
 
 **輸出怎麼讀**
@@ -1140,25 +1174,27 @@ estimates(el, pars = "beta|b_ability")
 - 四個區間都不含 0，所以都有 `*`。
 - `b_ability` 約 −0.21（模擬時的真值是 −0.2）。小於 0 表示能力高的人速度較慢（花較多時間）。
 
-### 只有作答：`mlirt()`
+### 只有作答：`model = "irt"`
 
 ``` r
 condM <- set_cond(n_subj = 800, n_item = 12, n_feat = 2)
 dataM <- sim_data(condM, sim_para(condM, "mlirt"), "mlirt")
-em_m <- ecm(mlirt(dataM))
+em_m <- ecm(dataM, model = "irt")
 bm <- estimates(em_m, pars = "beta")
-data.frame(parameter = bm$parameter, est = bm$est, se = bm$se, true = attr(dataM, "true_para")$beta)
+tibble::tibble(parameter = bm$parameter, est = bm$est, se = bm$se, true = attr(dataM, "true_para")$beta)
 ```
 
-      parameter        est         se        true
-    1  beta[x1]  0.1052757 0.04133402  0.06437165
-    2  beta[x2] -0.2308451 0.04349319 -0.20854659
+    # A tibble: 2 × 4
+      parameter    est     se    true
+      <chr>      <dbl>  <dbl>   <dbl>
+    1 beta[x1]   0.105 0.0413  0.0644
+    2 beta[x2]  -0.231 0.0435 -0.209 
 
 **逐行說明**
 
 1.  設定 800 人、12 題、2 個共變項。
-2.  模擬資料，只有作答。
-3.  用 ECM 估計 `mlirt()`。
+2.  模擬資料，只有作答。`sim_data()` 把這個模型叫做 `"mlirt"`（多層次 IRT），`ecm()` 叫它 `"irt"`。
+3.  用 ECM 估計 `"irt"` 模型。
 4.  取出迴歸係數的參數表。
 5.  把估計值、標準誤和真值並排。`attr(dataM, "true_para")` 取出模擬時用的真值。
 
@@ -1174,20 +1210,19 @@ data.frame(parameter = bm$parameter, est = bm$est, se = bm$se, true = attr(dataM
 前面三個例子的資料都是 `sim_data()` 直接模擬的。這一段回到第 3 節自己建的 `datc`，它有置中後的性別。性別是隨機抽的，和能力、速度都無關。
 
 ``` r
-eg <- ecm(rtirt_latreg(datc))
+eg <- ecm(datc, model = "latreg")
 estimates(eg, pars = "beta")
 ```
 
-                    parameter         est        se          z       q025      q975
-    41 beta_ability[gender_c]  0.01091771 0.1005348  0.1085963 -0.1861269 0.2079624
-    42   beta_speed[gender_c] -0.03171519 0.0822163 -0.3857530 -0.1928562 0.1294258
-       sig
-    41    
-    42    
+    # A tibble: 2 × 7
+      parameter                  est     se      z   q025  q975 sig  
+      <chr>                    <dbl>  <dbl>  <dbl>  <dbl> <dbl> <chr>
+    1 beta_ability[gender_c]  0.0109 0.101   0.109 -0.186 0.208 ""   
+    2 beta_speed[gender_c]   -0.0317 0.0822 -0.386 -0.193 0.129 ""   
 
 **逐行說明**
 
-1.  用 ECM 估計 `rtirt_latreg()`，共變項是 `gender_c`。
+1.  用 ECM 估計 `"latreg"` 模型，共變項是 `gender_c`。
 2.  只看性別的兩個迴歸係數。
 
 **輸出怎麼讀**
@@ -1199,7 +1234,7 @@ estimates(eg, pars = "beta")
 ### 速度的變異數要不要固定（進階）
 
 - 預設 `speed_var = "free"`：估計速度的變異數。
-- `rtirt_cross(dat, speed_var = "fixed")`：把它固定為 1。
+- `ecm(dat, model = "cross", speed_var = "fixed")`：把它固定為 1。
 
 用真實資料時請用預設。log 秒數的速度變異數通常遠小於 1（例如 TIMSS 約 0.1），固定成 1 會讓模型配適變差很多。
 
@@ -1212,22 +1247,25 @@ estimates(eg, pars = "beta")
 - 因為它不是真的概似，`ecm()` 不估分位數模型：
 
 ``` r
-ecm(rtirt_cross(sim, quantile = 0.9))
+ecm(sim, model = "cross", quantile = 0.9)
 ```
 
-    Error: ecm() fits the normal models; quantile models use gibbs()
+    Error: ecm() fits the normal models; quantile models use gibbs(data, model = ..., quantile = )
 
 **逐行說明**
 
 - 對分位數模型呼叫 `ecm()`。
-- 這一節直接把 `sim` 交給模型，不用 `dat`。`sim_data()` 產生的 `sim` 本身就是一份 `input_data()` 格式的資料，作答和時間都和 `dat` 一樣。
+- 這一節直接把 `sim` 交給 `ecm()` 與 `gibbs()`，不用 `dat`。`sim_data()` 產生的 `sim` 本身就是一份 `input_data()` 格式的資料，作答和時間都和 `dat` 一樣。
 
 **輸出怎麼讀：** 報錯，訊息說分位數模型要用 `gibbs()`。
 
 ``` r
-qs <- gibbs(rtirt_cross(sim, quantile = c(0.1, 0.5, 0.9)), n_iter = 2000, n_chain = 3,
-            seed = 2, verbose = FALSE)
-rho_q <- coef(qs)[grepl("^rho", rownames(coef(qs))), ]
+qs <- gibbs(sim,
+  model = "cross", quantile = c(0.1, 0.5, 0.9), n_iter = 2000, n_chain = 3,
+  seed = 2, control = gibbs_control(verbose = FALSE)
+)
+coefs <- coef(qs)
+rho_q <- coefs[grepl("^rho", rownames(coefs)), ]
 round(cbind(true = rho_true, ecm_mean = rho_ecm, rho_q), 3)
 ```
 
@@ -1251,14 +1289,14 @@ plot(qs, pars = "^rho\\[item0[1-6]\\]")
 
 **逐行說明**
 
-1.  給三個分位數，`gibbs()` 會一次估三個模型。分位數模型不能用 `init = "ecm"`，所以這裡不寫，每條鏈從隨機的起點出發。
-2.  挑出 ρ 的估計值：
-    - `coef(qs)` 是一個矩陣，一列一個參數、一欄一個分位數；
+1.  給三個分位數，`gibbs()` 會一次估三個模型。分位數模型不能用 `init`（ECM 不估分位數模型），所以這裡不寫，每條鏈從隨機的起點出發。
+2.  `coef(qs)` 是一個矩陣，一列一個參數、一欄一個分位數。
+3.  挑出 ρ 的估計值：
     - `rownames()` 取出列名，也就是參數名稱；
     - `grepl("^rho", ...)` 對每個名稱回答「是不是 rho 開頭」（TRUE/FALSE）；
     - `[TRUE 的列, ]` 只留下 ρ 的列，欄全部保留。
-3.  把 ρ 的真值、平均數模型的 ECM 估計值（第 4 節的 `rho_true`、`rho_ecm`）和三個分位數模型並排。
-4.  畫前 6 題的 ρ 在三個分位數下的估計值。
+4.  把 ρ 的真值、平均數模型的 ECM 估計值（第 4 節的 `rho_true`、`rho_ecm`）和三個分位數模型並排。
+5.  畫前 6 題的 ρ 在三個分位數下的估計值。
 
 **輸出怎麼讀**
 
@@ -1348,7 +1386,7 @@ print(score_test(fit, rbinom(nrow(dat$Y), 1, 0.5) == 1))
   - 沒有任何一題的 `p.holm` 小於 .05。
 - 第二段：隨機分組，p = .571，不顯著，符合預期。
 
-**注意：** 如果調節變項和能力有關（例如數學自信），能力的差異會讓所有題目看起來都在變。這時要把它放進 `rtirt_latreg()` 的共變項再檢定。函數發現這種情況會提醒，就是第一段開頭那幾行。
+**注意：** 如果調節變項和能力有關（例如數學自信），能力的差異會讓所有題目看起來都在變。這時要把它放進 `"latreg"` 模型的共變項再檢定。函數發現這種情況會提醒，就是第一段開頭那幾行。
 
 ### 作答時間異常的人：`person_fit()`
 
@@ -1401,7 +1439,7 @@ condS <- set_cond(n_subj = 400, n_item = 8)
 tpS <- sim_para(condS, "cross")
 one_rep <- function(r) {
   d <- sim_data(condS, tpS, "cross")
-  est <- estimates(ecm(rtirt_cross(d), se = FALSE), pars = "^rho")$est
+  est <- estimates(ecm(d, model = "cross", se = FALSE), pars = "^rho")$est
   c(bias = mean(est - tpS$rho), rmse = sqrt(mean((est - tpS$rho)^2)))
 }
 res_ecm <- t(sapply(1:20, one_rep))
@@ -1475,10 +1513,12 @@ times <- names(raw)[20:33]
 covs <- names(raw)[44:53]
 raw[covs] <- lapply(raw[covs], function(x) x - mean(x))
 dat <- input_data(resp = items, time = times, cov = covs, id = "IDSTUD", data = raw)
-fit <- ecm(rtirt_cross(dat))
+fit <- ecm(dat, model = "cross")
 summary(fit)
-fq <- gibbs(rtirt_cross(dat, quantile = 0.9), n_iter = 12000, n_burnin = 4000,
-            n_chain = 3, seed = 1)
+fq <- gibbs(dat,
+  model = "cross", quantile = 0.9, n_iter = 12000, n_chain = 3, seed = 1,
+  control = gibbs_control(n_burnin = 4000)
+)
 summary(fq)
 ```
 
@@ -1490,9 +1530,9 @@ summary(fq)
 4.  第 44–53 欄是共變項。
 5.  共變項置中（第 3 節）：`lapply()` 對每一個共變項欄位，減掉它自己的平均數。
 6.  建立資料。
-7.  用 ECM 估計平均數的交叉關係模型。`rtirt_cross()` 不用共變項，會提醒你共變項被忽略。
+7.  用 ECM 估計平均數的交叉關係模型。`"cross"` 模型不用共變項，資料裡的共變項不會被用到。
 8.  看結果。
-9.  第 90 百分位數的交叉關係模型：12000 次，前 4000 次是 burn-in，3 條鏈。這一行寫成兩行，第二行是接續的參數。
+9.  第 90 百分位數的交叉關係模型：12000 次，前 4000 次是 burn-in（`gibbs_control(n_burnin = 4000)`），3 條鏈。這個呼叫寫成好幾行，括號裡都是同一個函數的參數。
 10. 看結果。
 
 **輸出怎麼讀：** 這段沒有執行，所以沒有輸出。表格的讀法和第 4、5 節一樣。
@@ -1501,15 +1541,17 @@ summary(fq)
 
 | 問題 | 回答 |
 |----|----|
-| 用 `ecm()` 還是 `gibbs()` | 先用 `ecm()`。需要後驗區間、分位數模型或 `person_fit()` 時，再用 `gibbs(fit, init = "ecm")`（第 5 節的表） |
-| `ecm()` 的 `converged` 是 `FALSE` | 把 `max_iter` 加大。仍然不收斂，常是樣本太小或參數接近邊界：試 `prior = "map"` |
+| 用 `ecm()` 還是 `gibbs()` | 先用 `ecm()`。需要後驗區間、分位數模型或 `person_fit()` 時，再用 `gibbs(dat, model = ..., init = fit)`（第 5 節的表） |
+| `ecm()` 的 `converged` 是 `FALSE` | 把 `max_iter` 加大：`control = ecm_control(max_iter = 5000)`。仍然不收斂，常是樣本太小或參數接近邊界：試 `prior = "map"` |
 | 標準誤是 NA 或很大 | 參數接近邊界（例如變異數接近 0）。用 `prior = "map"` 或 `gibbs()` |
-| R̂ 大於 1.05 | 把 `n_iter` 加大。2PL 模型可以加 `gibbs(..., collapse = TRUE)`：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大 |
+| R̂ 大於 1.05 | 把 `n_iter` 加大。2PL 模型可以加 `gibbs(..., control = gibbs_control(collapse = TRUE))`：換一種抽樣方法，後驗不變，但混合較快，ESS 會變大 |
 | 有缺失值 | 現成的模型需要完整資料；要處理缺失，用第二份教學的積木 |
 | 共變項要不要置中 | 要（第 3 節） |
 | 時間單位 | 秒數用 `time =`；已經取 log 用 `log_time =` |
 | 分位數的結果怎麼報告 | 和平均數模型一起報告；極端分位數的 ρ 會偏大（第 8 節） |
-| 舊程式用 `em()`、`check_em()` | 改名了：`ecm()`、`check_ecm()`。`map = TRUE` 改成 `prior = "map"`，`Q =` 改成 `nodes =`，`fit$em` 改成 `fit$ecm`，`init = "em"` 改成 `init = "ecm"` |
+| 舊程式用 `rtirt_cross(dat)` 這類函數 | 還能用，但會警告。改成 `ecm(dat, model = "cross")`、`gibbs(dat, model = "cross")`；`gibbs(fit, init = "ecm")` 改成 `gibbs(dat, model = "cross", init = fit)`；`nodes`、`max_iter` 等改放進 `ecm_control()`，`n_burnin`、`collapse`、`verbose`、`fit_indices` 改放進 `gibbs_control()` |
+| 舊程式用 `em()`、`check_em()` | 改名了：`ecm()`、`check_ecm()`。`map = TRUE` 改成 `prior = "map"`，`Q =` 改成 `ecm_control(nodes = )`，`fit$em` 改成 `fit$ecm` |
+| 估計前想看模型的式子 | `equations(dat, model = "cross")`；演算法的步驟：`algorithm(dat, model = "cross")` |
 | 想看抽樣器每一步在算什麼 | `algorithm(fit)`，見第二份教學 |
 
 ## 附錄 A：從 Julia 版搬過來
@@ -1524,8 +1566,7 @@ summary(fq)
 |----|----|
 | `setCond(nSubj=…, qRt=…)` | `set_cond(...)`（只有模擬需要） |
 | `InputData(Y=, T=, X=)` | `input_data(resp = , time = , cov = , id = , data = )` |
-| `GibbsRtIrtCrossQr(Cond, Data)` | `rtirt_cross(dat, quantile = q)` |
-| `sample!(MCMC)` | `gibbs(model, n_iter = , n_chain = , seed = )` |
+| `GibbsRtIrtCrossQr(Cond, Data)` 與 `sample!(MCMC)` | `gibbs(dat, model = "cross", quantile = q, n_iter = , n_chain = , seed = )` |
 | `coef(MCMC)`、`precis(MCMC)` | `summary(fit)`、`estimates(fit)` |
 | `getDic`、`checkConvergence`、`comparePara` | `fit_indices()`、`convergence()`、`compare_para()` |
 
@@ -1545,7 +1586,8 @@ summary(fq)
 ``` r
 condC <- set_cond(n_subj = 20, n_item = 3)
 dC <- sim_data(condC, sim_para(condC, "null"), "null")
-print(check_sampler(rtirt_null(dC), seed = 1))
+fC <- ecm(dC, model = "null", se = FALSE)
+print(check_sampler(fC, seed = 1))
 ```
 
     Geweke (2004) joint distribution test 
@@ -1572,7 +1614,8 @@ print(check_sampler(rtirt_null(dC), seed = 1))
 
 1.  很小的設定：20 人、3 題。檢查只需要小資料，跑得快。
 2.  模擬一份資料。只用來告訴函數資料的大小。
-3.  `check_sampler()`：對 `rtirt_null()` 的抽樣器做 Geweke 檢查。`print()` 只印摘要與差距最大的 10 列。
+3.  用 ECM 配適 `"null"` 模型。這一步只是為了告訴 `check_sampler()` 要檢查哪個模型，估計值不會被用到。
+4.  `check_sampler()`：對 `"null"` 模型的抽樣器做 Geweke 檢查。`print()` 只印摘要與差距最大的 10 列。
 
 **輸出怎麼讀**
 
@@ -1602,7 +1645,7 @@ print(check_sampler(rtirt_null(dC), seed = 1))
 2.  E 步和目標函數一致：在目前的參數上，Q 的梯度（斜率）等於目標函數的梯度。這叫 Fisher 恆等式；
 3.  停下來的地方是最大值：換一個一般的最佳化方法，也找不到更好的點。
 
-`check_ecm()` 從很多個起點檢查這三件事。它檢查的是用積木（`block_model()`）組出來的模型，所以下面用積木寫一個 2PL。積木的寫法見第二份教學，這裡只看結果。
+`check_ecm()` 從很多個起點檢查這三件事。它檢查的是用積木（`block_model()`）組出來的模型，所以下面用積木寫一個 2PL。積木的寫法見第二份教學，這裡只看結果。`block_model()` 已不建議使用（不再加新功能），這裡只用它示範這個檢查。
 
 ``` r
 set.seed(1)
