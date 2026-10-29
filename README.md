@@ -39,7 +39,7 @@ Quarto 把 callout 寫成 `<div>` 包住的引用；這裡的 `.md` 再把它們
 
 ## 從舊寫法改過來
 
-0.2.0 起，birtRcpp 改用 `ecm(dat, model = "cross")`、`gibbs(dat, model = "cross", init = fit)` 這樣的寫法，兩個套件的表格都改成 tibble；birt 的 `estimates()` 欄名統一成 `est`、`se`、`lower`、`upper`，`sim_rtirt()` 不再預設 `seed = 1`。舊寫法大多還能用（會出現「已不建議使用」的警告）；新舊寫法逐項對照見 [MIGRATION.md](MIGRATION.md)。
+0.2.0 起，birtRcpp 改用 `ecm(dat, model = "cross")`、`gibbs(dat, model = "cross", init = fit)` 這樣的寫法，兩個套件的表格都改成 tibble；birt 的 `estimates()` 欄名統一成 `est`、`se`、`lower`、`upper`，`sim_rtirt()` 不再預設 `seed = 1`。舊寫法大多還能用（會出現「已不建議使用」的警告）；新舊寫法逐項對照見 [MIGRATION.md](MIGRATION.md)，兩版的整體差異與實際輸出比較見 [COMPARE_0.1_0.2.md](COMPARE_0.1_0.2.md)。
 
 ## 範例
 
