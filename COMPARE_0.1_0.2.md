@@ -274,7 +274,7 @@ ability  =~  y2   hier(ability)  1.559  0.282  1.094  2.222
 - birt 的模型語法（lavaan 寫法），以及 `birt()` 的引數。
 - 支援的模型和估計方法。下面這些 0.1.0 不能做，0.2.0 仍然不能做：
   - birtRcpp 的 mixture 模型和 GRM。
-  - birtRcpp 的 `ecm()` 估計分位數模型。
+  - birtRcpp 的 `ecm()` 估計分位數模型（birtRcpp 0.3.0 加入）。
   - birtRcpp 的 `input_data()` 接受缺失值。
 - 中文 README（`README.zh-TW.md`）沒有同步更新，內容還是 0.1.0 的。
 

@@ -26,8 +26,8 @@
 - `sim_data()`、`sim_para()` 也接受 `"irt"`（0.2.0 起；舊名 `"mlirt"` 照樣可用，抽出的資料相同）。模型名字不分大小寫，打錯時會提示最接近的名字。
 - `cov =` 選共變項（`NULL` 是資料裡全部的共變項）；`ecm()` 與 `gibbs()` 都有。
 - `intercept =`（作答迴歸加截距）只在 `gibbs()`。
-- 分位數模型（`quantile =`）只能用 `gibbs()`：`ecm(dat, model = "cross", quantile = 0.9)` 會報錯，說要改用 `gibbs()`。
-- `init = fit`：`fit` 必須是**同一份資料、同一個模型**（`speed_var`、`itemtype` 也相同）的 `ecm()` 結果，否則報錯。分位數模型不能用 `init = fit`，從隨機起點開始。
+- 分位數模型（`quantile =`）：0.2.0 只能用 `gibbs()`。0.3.0 起 `ecm(dat, model = "cross", quantile = 0.9)` 也可以（ALD 工作概似的最大值，sandwich 標準誤）。
+- `init = fit`：`fit` 必須是**同一份資料、同一個模型**（`speed_var`、`itemtype`，分位數模型還有 `quantile`，都相同）的 `ecm()` 結果，否則報錯。0.2.0 的分位數模型不能用 `init`；0.3.0 起可以寫 `init = fit`（同一個分位數的 `ecm()` 結果），幾個分位數一起估時寫 `init = "ecm"`。
 - `init = "ecm"` 仍可用：`gibbs()` 先自己跑一次 ECM，再從那裡出發。
 
 ## 2. birtRcpp：很少改的設定

@@ -41,6 +41,8 @@ Quarto 把 callout 寫成 `<div>` 包住的引用；這裡的 `.md` 再把它們
 
 0.2.0 起，birtRcpp 改用 `ecm(dat, model = "cross")`、`gibbs(dat, model = "cross", init = fit)` 這樣的寫法，兩個套件的表格都改成 tibble；birt 的 `estimates()` 欄名統一成 `est`、`se`、`lower`、`upper`，`sim_rtirt()` 不再預設 `seed = 1`。舊寫法大多還能用（會出現「已不建議使用」的警告）；新舊寫法逐項對照見 [MIGRATION.md](MIGRATION.md)，兩版的整體差異與實際輸出比較見 [COMPARE_0.1_0.2.md](COMPARE_0.1_0.2.md)。
 
+birtRcpp 0.3.0 起，`ecm()` 也能估分位數模型：`ecm(dat, model = "cross", quantile = 0.9)`，標準誤是 sandwich 標準誤；分位數模型的 `gibbs()` 可以從這個結果出發（`init = fit`）。見《birtRcpp 入門》第 8 節。
+
 ## 範例
 
 每個範例是一個獨立的 R 檔，可以直接執行，例如：
@@ -79,10 +81,10 @@ remotes::install_github("jiewenTsai/birtRcpp")     # 需要 C++ 編譯器
 
 ## 版本
 
-這裡的輸出是用下列版本產生的（birt 使用教學與 birtRcpp 入門：2026-10-29；birtRcpp 積木：2026-10-28，0.1.0）：
+這裡的輸出是用下列版本產生的（birt 使用教學：2026-10-29，birt 0.2.0；birtRcpp 入門：2026-10-29，birtRcpp 0.3.0；birtRcpp 積木：2026-10-28，0.1.0）：
 
 - R 4.5.3（macOS，aarch64）、Quarto 1.10.19
-- birt 0.2.0、birtRcpp 0.2.0
+- birt 0.2.0、birtRcpp 0.3.0
 - RTMB 2.0、lavaan 0.7.2、JAGS 4.3.2、R2jags 0.8.9、Rcpp 1.1.1、RcppArmadillo 15.2.4.1、dplyr 1.2.0
 
 模擬資料都有設定亂數種子，但 JAGS 與 Gibbs 的結果在不同平台上可能有很小的差異；執行時間會隨電腦不同。

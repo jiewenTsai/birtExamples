@@ -11,7 +11,7 @@ Jie-Wen Tsai
 - [5. 同一個模型，用 `gibbs()` 抽樣](#5-同一個模型用-gibbs-抽樣)
 - [6. 先驗](#6-先驗)
 - [7. 其他現成模型](#7-其他現成模型)
-- [8. 分位數模型（進階，只能用 Gibbs）](#8-分位數模型進階只能用-gibbs)
+- [8. 分位數模型（進階）](#8-分位數模型進階)
 - [9. 檢定（進階）](#9-檢定進階)
 - [10. 模擬研究（進階）](#10-模擬研究進階)
 - [11. 用真實資料](#11-用真實資料)
@@ -309,7 +309,7 @@ fit
 
     model = "null" (rtirt_null)
       500 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 10 iterations, 0.3 s
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 10 iterations, 0.2 s
       logLik -7939.762, npar 42, AIC 15963.524, BIC 16140.537
       Reliability: ability 0.656, speed 0.917
     Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model = ..., init = fit) to sample from here.
@@ -320,7 +320,7 @@ summary(fit)
 
     model = "null" (rtirt_null)
       500 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 10 iterations, 0.3 s
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 10 iterations, 0.2 s
 
     $fit  marginal likelihood (persons integrated out)
     method     logLik  npar    N        AIC        BIC
@@ -561,10 +561,10 @@ $$
 | `"cross"` | 每一題都有自己的 ρ（交叉關係）。能力與速度之間不另外估相關，兩者的關係全部由 ρ 表示 | 想知道能力在哪些題目上影響作答時間 |
 
 - 五個模型都可以用 `ecm()` 估計，也都可以用 `gibbs()` 估計。
-- `"latent"` 和 `"cross"` 在 `gibbs()` 裡還可以加上 `quantile = 0.9`，變成分位數模型。
+- `"latent"` 和 `"cross"` 在 `ecm()` 與 `gibbs()` 裡都可以加上 `quantile = 0.9`，變成分位數模型。
 - 舊版的寫法 `rtirt_cross(dat)`、`mlirt(dat)` 等還能用，但會出現「已不建議使用」的警告。
 - 分位數模型不看「平均的」log 時間，而是看作答時間分配的某個百分位數。例如 0.9 是第 90 百分位數，也就是作答時間偏長的那一端。
-- 分位數模型只能用 `gibbs()`（第 8 節）。
+- 分位數模型見第 8 節。
 
 ## 3. 準備資料：`input_data()`
 
@@ -717,7 +717,7 @@ fit
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.4 s
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.3 s
       logLik -9946.565, npar 51, AIC 19995.130, BIC 20219.374
       Reliability: ability 0.751, speed 0.966
     Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model = ..., init = fit) to sample from here.
@@ -884,7 +884,7 @@ print(s, tables = c("fit", "parameters"))
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.4 s
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.3 s
 
     $fit  marginal likelihood (persons integrated out)
     method     logLik  npar    N        AIC        BIC
@@ -1190,7 +1190,7 @@ logLik(f61) - logLik(fit)
 | 快速得到估計值與標準誤 | `ecm()` |
 | AIC、BIC、概似比檢定 | `ecm()` |
 | 參數的後驗分配、後驗區間 | `gibbs()` |
-| 分位數模型 | `gibbs()`（`ecm()` 不支援） |
+| 分位數模型 | `ecm()`（標準誤是 sandwich 標準誤）或 `gibbs()` |
 | 作答時間異常檢定 `person_fit()` | `gibbs()` |
 | 小樣本，或參數接近邊界（邊界是參數可以取的極端值，例如變異數接近 0；或 a 跑得很大） | `gibbs()`，或 `ecm(prior = "map")` |
 
@@ -1203,7 +1203,7 @@ g
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      3 chains x 2000 iterations (burn-in 1000, thin 1); 6.4 s
+      3 chains x 2000 iterations (burn-in 1000, thin 1); 5.2 s
       Reliability: ability 0.745, speed 0.962
       Marginal: DIC 19994.783 (pD 50.697), WAIC 19995.756, LOOIC 19996.484
       Warning: only 98.0% of 51 parameters have ESS > 400 and R-hat < 1.05 (max R-hat 1.015, min ESS 396); run longer (n_iter) or see convergence()
@@ -1638,26 +1638,58 @@ estimates(eg, pars = "beta")
 
 用真實資料時請用預設。log 秒數的速度變異數通常遠小於 1（例如 TIMSS 約 0.1），固定成 1 會讓模型配適變差很多。
 
-## 8. 分位數模型（進階，只能用 Gibbs）
+## 8. 分位數模型（進階）
 
 `quantile = 0.9` 不是看「平均的」作答時間，而是看作答時間分配的第 90 百分位數，也就是「作答時間偏長的那一端」。
 
 - 計算上借用 **ALD**（非對稱拉普拉斯分配）當概似。用它估出來的，就是指定的分位數。
-- ALD 只是計算工具，不代表我們相信誤差真的長這樣。
-- 因為它不是真的概似，`ecm()` 不估分位數模型：
+- ALD 只是計算工具，不代表我們相信誤差真的長這樣。所以它叫**工作概似**（working likelihood）。
+- `ecm()` 估分位數模型時，標準誤用 **sandwich 標準誤**。一般的標準誤假設概似是對的；ALD 不是資料真正的分配，所以要用 sandwich 標準誤，它把每個人實際的變異也算進去。
 
 ``` r
-ecm(sim, model = "cross", quantile = 0.9)
+fit_q <- ecm(sim, model = "cross", quantile = 0.9)
+fit_q
 ```
 
-    Error: ecm() fits the normal models; quantile models use gibbs(data, model = ..., quantile = )
+    model = "cross", quantile = 0.9 (rtirt_cross)
+      600 persons x 10 items
+      maximum marginal ALD working likelihood (ECM, 41 Gauss-Hermite nodes): 21 iterations, 15.7 s
+      working logLik -10981.235, npar 51, AIC 22064.469, BIC 22288.713 (compare only fits at the same quantile)
+      Standard errors: sandwich (robust to the ALD being a working likelihood)
+      Reliability: ability 0.792, speed 0.971
+    Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model = ..., init = fit) to sample from here.
+
+``` r
+estimates(fit_q, pars = "^rho")
+```
+
+    # A tibble: 10 x 7
+    parameter       est     se       z    q025    q975  sig
+    rho[item01]   0.257  0.056   4.583   0.147   0.367  *
+    rho[item02]  -0.179  0.075  -2.372  -0.327  -0.031  *
+    rho[item03]   0.299  0.054   5.564   0.194   0.404  *
+    rho[item04]  -0.251  0.070  -3.568  -0.390  -0.113  *
+    rho[item05]  -0.497  0.065  -7.607  -0.625  -0.369  *
+    rho[item06]  -0.305  0.121  -2.527  -0.542  -0.068  *
+    rho[item07]  -0.114  0.086  -1.319  -0.283   0.055
+    rho[item08]  -0.099  0.076  -1.301  -0.249   0.050
+    rho[item09]  -0.361  0.069  -5.231  -0.496  -0.225  *
+    rho[item10]  -0.075  0.075  -1.010  -0.221   0.071
 
 **逐行說明**
 
-- 對分位數模型呼叫 `ecm()`。
-- 這一節直接把 `sim` 交給 `ecm()` 與 `gibbs()`，不用 `dat`。`sim_data()` 產生的 `sim` 本身就是一份 `input_data()` 格式的資料，作答和時間都和 `dat` 一樣。
+1.  用 ECM 估第 90 百分位數的交叉關係模型。
+    - 這一節直接把 `sim` 交給 `ecm()` 與 `gibbs()`，不用 `dat`。`sim_data()` 產生的 `sim` 本身就是一份 `input_data()` 格式的資料，作答和時間都和 `dat` 一樣。
+2.  印出結果。
+3.  只看 ρ 的估計值（`pars = "^rho"`：名稱以 rho 開頭的參數）。
 
-**輸出怎麼讀：** 報錯，訊息說分位數模型要用 `gibbs()`。
+**輸出怎麼讀**
+
+- 第 3 行 `maximum marginal ALD working likelihood`：估的是 ALD 工作概似的最大值，ECM 跑了 21 次就收斂。
+- 第 4 行 `working logLik`、AIC、BIC：都是工作概似算的，只能和**同一個分位數**的其他模型比，不能和平均數模型比。`anova()` 也不接受分位數模型。
+- 第 5 行：標準誤是 sandwich 標準誤。
+- ρ 的表和第 4 節 ECM 的表一樣讀：`est` 是估計值，`se` 是 sandwich 標準誤，`q025`、`q975` 是 Wald 95% 區間。
+- 和平均數模型比，第 90 百分位數的 ρ 大多離 0 更遠，例如 item09 是 −0.361，平均數模型是 −0.238，真值是 −0.160。下面用 Gibbs 估三個分位數時也看得到，原因寫在本節最後的「解讀時要小心」。
 
 ``` r
 qs <- gibbs(sim,
@@ -1689,7 +1721,7 @@ plot(qs, pars = "^rho\\[item0[1-6]\\]")
 
 **逐行說明**
 
-1.  給三個分位數，`gibbs()` 會一次估三個模型。分位數模型不能用 `init`（ECM 不估分位數模型），所以這裡不寫，每條鏈從隨機的起點出發。
+1.  給三個分位數，`gibbs()` 會一次估三個模型。這裡沒有寫 `init`，每條鏈從隨機的起點出發；寫 `init = "ecm"` 會先對每個分位數各跑一次 ECM，從那裡出發。
 2.  `coef(qs)` 是一個矩陣，一列一個參數、一欄一個分位數。
 3.  挑出 ρ 的估計值：
     - `rownames()` 取出列名，也就是參數名稱；
@@ -2094,7 +2126,7 @@ summary(fq)
 
 | 問題 | 回答 |
 |----|----|
-| 用 `ecm()` 還是 `gibbs()` | 先用 `ecm()`。需要後驗區間、分位數模型或 `person_fit()` 時，再用 `gibbs(dat, model = ..., init = fit)`（第 5 節的表） |
+| 用 `ecm()` 還是 `gibbs()` | 先用 `ecm()`。需要後驗區間或 `person_fit()` 時，再用 `gibbs(dat, model = ..., init = fit)`（第 5 節的表） |
 | `ecm()` 的 `converged` 是 `FALSE` | 把 `max_iter` 加大：`control = ecm_control(max_iter = 5000)`。仍然不收斂，常是樣本太小或參數接近邊界：試 `prior = "map"` |
 | 標準誤是 NA 或很大 | 參數接近邊界（例如變異數接近 0），或樣本太小。`print(fit)` 遇到 \|b\| \> 6、a \< 0.1 或 \> 10、標準誤 \> 5 時會多一行 `Warning: extreme estimates ...`。用 `prior = "map"` 或 `gibbs()` |
 | 參數名稱打錯，或把 `nodes`、`n_burnin` 直接寫進 `ecm()`／`gibbs()` | 會立刻報錯，不會先跑完：設定放進 `control = ecm_control(nodes = 61)` 或 `control = gibbs_control(n_burnin = 500)`；打錯的名字（例如 `niter`）訊息會提示正確的（`n_iter`） |
@@ -2247,7 +2279,7 @@ print(check_ecm(fE, prior = "ml", seed = 1))
   - 第 1 列（`never lowers the objective`）是第 1 件事：一次完整的 M 步（`em_mstep()`）從每個起點都不讓目標函數變小，最差的下降量是 0；
   - 第 2 列（`Fisher identity`）是第 2 件事：E 步算出的分數（`em_score()`）等於目標函數的數值梯度；
   - 第 3、4 列（`ECM stops at a maximum`）是第 3 件事：一般的最佳化方法幾乎找不到更好的點，梯度也接近 0。
-- `gibbs()` 的結果也可以交給 `check_ecm()`（它只用到模型與資料）；分位數模型沒有 ECM，不能檢查。
+- `gibbs()` 的結果也可以交給 `check_ecm()`（它只用到模型與資料）。分位數模型一次檢查一個分位數，例如 `check_ecm(fit_q)`；它的目標函數是 ALD 工作概似。
 
 ### 其他比對
 
