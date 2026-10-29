@@ -238,7 +238,7 @@ heda(dat)
 birt(rtirt_syntax(paste0("Y", 1:5), paste0("t", 1:5)), dat)
 ```
 
-    Error in build_spec(model, data, binary, family, ordered, itemtype): variables in the model but not in `data`: Y1 (a typo for 'y1'?), Y2 (a typo for 'y2'?), Y3 (a typo for 'y3'?), Y4 (a typo for 'y4'?), Y5 (a typo for 'y5'?)
+    Error in birt(rtirt_syntax(paste0("Y", 1:5), paste0("t", 1:5)), dat): variables in the model but not in `data`: Y1 (a typo for 'y1'?), Y2 (a typo for 'y2'?), Y3 (a typo for 'y3'?), Y4 (a typo for 'y4'?), Y5 (a typo for 'y5'?)
 
 逐行說明：
 
@@ -248,7 +248,7 @@ birt(rtirt_syntax(paste0("Y", 1:5), paste0("t", 1:5)), dat)
 輸出怎麼讀：
 
 - `Error in heda(dat)`：`Error in` 後面是出錯的那一個呼叫，冒號後面是原因。`could not find function "heda"` 表示沒有叫 `heda` 的函數：多半是打錯字，或是忘了用 `library()` 載入套件。
-- 第二個錯誤的 `Error in` 後面是 birt 內部的函數名稱，不必理會；重要的是冒號後面的原因：模型裡有 `Y1`–`Y5`，資料裡卻沒有這些欄位。括號裡的 `a typo for 'y1'?` 是在猜你想打的名字。birt 在估計之前就先檢查資料，所以這類錯誤馬上出現。
+- 第二個錯誤是 `Error in birt(...)`：出錯的是 `birt()` 這個呼叫。冒號後面是原因：模型裡有 `Y1`–`Y5`，資料裡卻沒有這些欄位。括號裡的 `a typo for 'y1'?` 是在猜你想打的名字。birt 在估計之前就先檢查資料，所以這類錯誤馬上出現。
 - 看到錯誤時，先讀冒號後面的原因，再對照自己的程式。把錯誤訊息貼到搜尋引擎，通常也找得到解法。
 - 以 `Warning` 開頭的是**警告**：R 會繼續執行並給出結果，但提醒你可能有問題，要讀一下。
 
@@ -333,7 +333,7 @@ fit0
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       300 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 5 continuous: normal (5); 5 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 22 parameters; 12 s
+      Approximate Bayes (ELGM; W = person latents): 22 parameters; 13 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 20 directions (81 nodes)
       log marginal likelihood -2355.50; -2logL at the posterior mode 4560.6
       Reliability: ability 0.567, speed 0.654
@@ -563,7 +563,7 @@ fit
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 37 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
       Reliability: ability 0.760, speed 0.861
@@ -601,7 +601,7 @@ summary(fit)
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 37 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -1036,7 +1036,7 @@ birt(rtirt_syntax(items, times, cross = "ssp"), d)
 birt(paste(m_cross, "speed ~ ability", sep = "\n"), d)
 ```
 
-    Error in parse_model(model): the path 'speed ~ ability' is not identified together with the free loadings of 'ability' on indicators of 'speed' (t1, t2, t3, ...); drop one of them
+    Error in birt(paste(m_cross, "speed ~ ability", sep = "\n"), d): the path 'speed ~ ability' is not identified together with the free loadings of 'ability' on indicators of 'speed' (t1, t2, t3, ...); drop one of them
 
 逐行說明：
 
@@ -1081,7 +1081,7 @@ print(s, tables = "fit")
     birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-      Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
+      Approximate Bayes (ELGM; W = person latents): 42 parameters; 37 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
       log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -1502,7 +1502,7 @@ r_s
       500 persons; latent variables: ability, speed
       Distributions: ability: normal; speed: SHASH; 10 continuous: normal (10); 10 binary: logit
       Covariates: x1, x2
-      Approximate Bayes (ELGM; W = person latents): 46 parameters; 72 s
+      Approximate Bayes (ELGM; W = person latents): 46 parameters; 70 s
         inner: AGHQ (k = 9) per person; outer: AGHQ, k = 13 on skew(speed), log tail(speed), Gaussian in 44 directions (169 nodes)
       log marginal likelihood -6872.71; -2logL at the posterior mode 13401.8
       Reliability: ability 0.762, speed 0.863

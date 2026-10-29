@@ -4,7 +4,7 @@
 
 | | 0.1.0 | 0.2.0 |
 |---|---|---|
-| birt | GitHub `main`（a4d97a4） | `refactor` 分支（910859c） |
+| birt | GitHub `main`（a4d97a4） | `refactor` 分支（1b10ffa） |
 | birtRcpp | GitHub `main`（eb74eb8） | `refactor` 分支（705e38c） |
 | birtExamples | GitHub `main`（fb6a82d） | `refactor` 分支 |
 
@@ -256,6 +256,7 @@ ability  =~  y2   hier(ability)  1.559  0.282  1.094  2.222
 | lavaan 不接受的語法（`ability ~= y1`、`e(y3) ~ x2`） | R 的語法錯誤 `unexpected '='` | 指出是哪一行、錯在哪裡，並列出可用的運算子 |
 | 共變項是因子或文字（`ability ~ gender`） | 只說 `covariates must be numeric without missing values: gender` | 給轉成 0/1 的寫法，缺失值另外報告 |
 | speed 的負荷量都固定為 +1 | 不提醒 | 提醒這樣 speed 越高代表越慢 |
+| 錯誤訊息開頭的呼叫 | birt 內部的函數，例如 `Error in build_spec(model, data, binary, family, ordered, itemtype)` | 你寫的呼叫，例如 `Error in birt("ability =~ Y1 + y2", d)` |
 
 0.1.0 一欄是實際跑 0.1.0 得到的，只有「警告裡的參數名稱」一列取自學生審查的紀錄。0.2.0 一欄取自實際執行、NEWS 和測試。
 
@@ -294,5 +295,4 @@ ability  =~  y2   hier(ability)  1.559  0.282  1.094  2.222
 
 ## 8. 還沒處理
 
-- birt 有幾個錯誤訊息開頭仍顯示內部函數名，例如 `Error in build_spec(model, data, ...)`，不是 `birt()`。新手章節 0.4 節的示範裡就有一個。
 - 三個 `refactor` 分支都還沒推上 GitHub。

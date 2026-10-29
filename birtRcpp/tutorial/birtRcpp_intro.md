@@ -717,7 +717,7 @@ fit
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.5 s
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.4 s
       logLik -9946.565, npar 51, AIC 19995.130, BIC 20219.374
       Reliability: ability 0.751, speed 0.966
     Use summary(), coef(), scores(), estimates(), fit_indices(); gibbs(data, model = ..., init = fit) to sample from here.
@@ -884,7 +884,7 @@ print(s, tables = c("fit", "parameters"))
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.5 s
+      maximum marginal likelihood (ECM, 41 Gauss-Hermite nodes): 18 iterations, 0.4 s
 
     $fit  marginal likelihood (persons integrated out)
     method     logLik  npar    N        AIC        BIC
@@ -1203,7 +1203,7 @@ g
 
     model = "cross" (rtirt_cross)
       600 persons x 10 items
-      3 chains x 2000 iterations (burn-in 1000, thin 1); 6.6 s
+      3 chains x 2000 iterations (burn-in 1000, thin 1); 6.4 s
       Reliability: ability 0.745, speed 0.962
       Marginal: DIC 19994.783 (pD 50.697), WAIC 19995.756, LOOIC 19996.484
       Warning: only 98.0% of 51 parameters have ESS > 400 and R-hat < 1.05 (max R-hat 1.015, min ESS 396); run longer (n_iter) or see convergence()

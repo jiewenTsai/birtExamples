@@ -2734,7 +2734,7 @@ window.Quarto = {
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">birt</span>(<span class="fu">rtirt_syntax</span>(<span class="fu">paste0</span>(<span class="st">&quot;Y&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>), <span class="fu">paste0</span>(<span class="st">&quot;t&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)), dat)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-error">
-<pre><code>Error in build_spec(model, data, binary, family, ordered, itemtype): variables in the model but not in `data`: Y1 (a typo for &#39;y1&#39;?), Y2 (a typo for &#39;y2&#39;?), Y3 (a typo for &#39;y3&#39;?), Y4 (a typo for &#39;y4&#39;?), Y5 (a typo for &#39;y5&#39;?)</code></pre>
+<pre><code>Error in birt(rtirt_syntax(paste0(&quot;Y&quot;, 1:5), paste0(&quot;t&quot;, 1:5)), dat): variables in the model but not in `data`: Y1 (a typo for &#39;y1&#39;?), Y2 (a typo for &#39;y2&#39;?), Y3 (a typo for &#39;y3&#39;?), Y4 (a typo for &#39;y4&#39;?), Y5 (a typo for &#39;y5&#39;?)</code></pre>
 </div>
 </div>
 <p>逐行說明：</p>
@@ -2745,7 +2745,7 @@ window.Quarto = {
 <p>輸出怎麼讀：</p>
 <ul>
 <li><code>Error in heda(dat)</code>：<code>Error in</code> 後面是出錯的那一個呼叫，冒號後面是原因。<code>could not find function &quot;heda&quot;</code> 表示沒有叫 <code>heda</code> 的函數：多半是打錯字，或是忘了用 <code>library()</code> 載入套件。</li>
-<li>第二個錯誤的 <code>Error in</code> 後面是 birt 內部的函數名稱，不必理會；重要的是冒號後面的原因：模型裡有 <code>Y1</code>–<code>Y5</code>，資料裡卻沒有這些欄位。括號裡的 <code>a typo for &#39;y1&#39;?</code> 是在猜你想打的名字。birt 在估計之前就先檢查資料，所以這類錯誤馬上出現。</li>
+<li>第二個錯誤是 <code>Error in birt(...)</code>：出錯的是 <code>birt()</code> 這個呼叫。冒號後面是原因：模型裡有 <code>Y1</code>–<code>Y5</code>，資料裡卻沒有這些欄位。括號裡的 <code>a typo for &#39;y1&#39;?</code> 是在猜你想打的名字。birt 在估計之前就先檢查資料，所以這類錯誤馬上出現。</li>
 <li>看到錯誤時，先讀冒號後面的原因，再對照自己的程式。把錯誤訊息貼到搜尋引擎，通常也找得到解法。</li>
 <li>以 <code>Warning</code> 開頭的是<strong>警告</strong>：R 會繼續執行並給出結果，但提醒你可能有問題，要讀一下。</li>
 </ul>
@@ -2829,7 +2829,7 @@ ability ~~ speed</code></pre>
 <pre><code>birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
   300 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: normal; 5 continuous: normal (5); 5 binary: logit
-  Approximate Bayes (ELGM; W = person latents): 22 parameters; 12 s
+  Approximate Bayes (ELGM; W = person latents): 22 parameters; 13 s
     inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 20 directions (81 nodes)
   log marginal likelihood -2355.50; -2logL at the posterior mode 4560.6
   Reliability: ability 0.567, speed 0.654
@@ -3136,7 +3136,7 @@ ability ~~ speed</code></pre>
 <pre><code>birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-  Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
+  Approximate Bayes (ELGM; W = person latents): 42 parameters; 37 s
     inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
   log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
   Reliability: ability 0.760, speed 0.861
@@ -3186,7 +3186,7 @@ Use summary() for the parameter table, scores() for the person scores and plot()
 <pre><code>birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-  Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
+  Approximate Bayes (ELGM; W = person latents): 42 parameters; 37 s
     inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
   log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -3710,7 +3710,7 @@ tail              dlnorm(0, 4)</code></pre>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">birt</span>(<span class="fu">paste</span>(m_cross, <span class="st">&quot;speed ~ ability&quot;</span>, <span class="at">sep =</span> <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>), d)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-error">
-<pre><code>Error in parse_model(model): the path &#39;speed ~ ability&#39; is not identified together with the free loadings of &#39;ability&#39; on indicators of &#39;speed&#39; (t1, t2, t3, ...); drop one of them</code></pre>
+<pre><code>Error in birt(paste(m_cross, &quot;speed ~ ability&quot;, sep = &quot;\n&quot;), d): the path &#39;speed ~ ability&#39; is not identified together with the free loadings of &#39;ability&#39; on indicators of &#39;speed&#39; (t1, t2, t3, ...); drop one of them</code></pre>
 </div>
 </div>
 <p>逐行說明：</p>
@@ -3751,7 +3751,7 @@ tail              dlnorm(0, 4)</code></pre>
 <pre><code>birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-  Approximate Bayes (ELGM; W = person latents): 42 parameters; 36 s
+  Approximate Bayes (ELGM; W = person latents): 42 parameters; 37 s
     inner: AGHQ (k = 9) per person; outer: AGHQ, k = 9 on log sd(speed), atanh cor(ability, speed), Gaussian in 40 directions (81 nodes)
   log marginal likelihood -6883.73; -2logL at the posterior mode 13448.7
 
@@ -4442,7 +4442,7 @@ V(t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10) ~ ability</code></pre>
 <pre><code>birt 0.2.0, RTMB engine: marginal likelihood (persons integrated out)
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: normal; 10 continuous: normal (log sd ~ ability) (10); 10 binary: logit
-  Approximate Bayes (ELGM; W = person latents): 61 parameters; 26 s
+  Approximate Bayes (ELGM; W = person latents): 61 parameters; 25 s
     inner: AGHQ (k = 9) per person; outer: AGHQ, k = 11 on log sd(speed), Gaussian in 60 directions (11 nodes)
   log marginal likelihood -6762.95; -2logL at the posterior mode 13071.3
   Reliability: ability 0.811, speed 0.823
@@ -5794,7 +5794,7 @@ y8            4      1.140    0.475   1.000</code></pre>
 <pre><code>birt 0.2.0 [M2b]
   500 persons; latent variables: ability, speed
   Distributions: ability: normal; speed: normal; 10 continuous: normal (10); 10 binary: logit
-  JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 33 s
+  JAGS, conditional likelihood (persons sampled with the parameters): 2 chains x 3000 iterations, burn-in 1500, thin 1; 3000 draws; 34 s
   Reliability: ability 0.805, speed 0.822
   LOOIC 13174.6 (SE 114.1), WAIC 13174.3, DIC 13176.0
 Use summary() for the parameter table.</code></pre>
@@ -7032,7 +7032,7 @@ dlt_y6_logT  -0.025  1.060  500</code></pre>
 <span id="cb194-216"><a href="#cb194-216" aria-hidden="true" tabindex="-1"></a>輸出怎麼讀：</span>
 <span id="cb194-217"><a href="#cb194-217" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb194-218"><a href="#cb194-218" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`Error in heda(dat)`</span>：<span class="in">`Error in`</span> 後面是出錯的那一個呼叫，冒號後面是原因。<span class="in">`could not find function &quot;heda&quot;`</span> 表示沒有叫 <span class="in">`heda`</span> 的函數：多半是打錯字，或是忘了用 <span class="in">`library()`</span> 載入套件。</span>
-<span id="cb194-219"><a href="#cb194-219" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第二個錯誤的 <span class="in">`Error in`</span> 後面是 birt 內部的函數名稱，不必理會；重要的是冒號後面的原因：模型裡有 <span class="in">`Y1`</span>–<span class="in">`Y5`</span>，資料裡卻沒有這些欄位。括號裡的 <span class="in">`a typo for &#39;y1&#39;?`</span> 是在猜你想打的名字。birt 在估計之前就先檢查資料，所以這類錯誤馬上出現。</span>
+<span id="cb194-219"><a href="#cb194-219" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>第二個錯誤是 <span class="in">`Error in birt(...)`</span>：出錯的是 <span class="in">`birt()`</span> 這個呼叫。冒號後面是原因：模型裡有 <span class="in">`Y1`</span>–<span class="in">`Y5`</span>，資料裡卻沒有這些欄位。括號裡的 <span class="in">`a typo for &#39;y1&#39;?`</span> 是在猜你想打的名字。birt 在估計之前就先檢查資料，所以這類錯誤馬上出現。</span>
 <span id="cb194-220"><a href="#cb194-220" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>看到錯誤時，先讀冒號後面的原因，再對照自己的程式。把錯誤訊息貼到搜尋引擎，通常也找得到解法。</span>
 <span id="cb194-221"><a href="#cb194-221" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>以 <span class="in">`Warning`</span> 開頭的是**警告**：R 會繼續執行並給出結果，但提醒你可能有問題，要讀一下。</span>
 <span id="cb194-222"><a href="#cb194-222" aria-hidden="true" tabindex="-1"></a></span>

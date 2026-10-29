@@ -3,7 +3,7 @@
 從 0.1.0 到 0.2.0（2026-10-28 的重構與 2026-10-29 的使用體驗修正），birt 與 birtRcpp 的寫法有哪些地方不一樣。舊寫法大多還能用，只是會出現「已不建議使用」的警告；改成新寫法就不會再看到警告。
 
 - birtRcpp：**改最多**。現成模型改成「給資料、用 `model =` 選模型」，很少改的設定收進 `ecm_control()`、`gibbs_control()`。
-- birt：**語法不變**。回傳的表格改成 tibble；新增 `ipcr()`，取代已不建議使用的 `dif_tree()`；錯誤訊息的呼叫回到原本的函數名稱。
+- birt：**語法不變**。回傳的表格改成 tibble；新增 `ipcr()`，取代已不建議使用的 `dif_tree()`；錯誤訊息顯示你呼叫的函數（`Error in birt(...)`），不再顯示內部函數名稱。
 
 ## 1. birtRcpp：選模型與估計
 
@@ -128,4 +128,4 @@
 
 ## 9. birt：錯誤訊息
 
-birt 的語法、`birt()` 的引數都沒有改。重構時把檢查拆成小函數，錯誤訊息一度顯示小函數的名稱（例如 `Error in check_path_alias(ld, factors)`）；已改回原本的函數（`Error in parse_model(model)`），和重構前逐字相同。
+birt 的語法、`birt()` 的引數都沒有改。錯誤訊息的內容也沒有改，只有 `Error in` 後面的呼叫不同：0.1.0 顯示 birt 內部的函數（例如 `Error in build_spec(model, data, binary, family, ordered, itemtype)`、`Error in parse_model(model)`），0.2.0 顯示你寫的那個呼叫（例如 `Error in birt(model, d)`、`Error in hgrm(...)`）。在自己的函數或 `lapply()` 裡呼叫 `birt()` 時也一樣。
